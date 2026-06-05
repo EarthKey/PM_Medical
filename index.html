@@ -711,6 +711,68 @@
       .q-number { font-size: 2.5rem; right: 1.25rem; top: 4.5rem; }
       .sub-section { margin: 0 1.25rem; }
     }
+
+    /* ==========================================================================
+       LIGHTBOX MODAL
+       ========================================================================== */
+    .lightbox {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(31, 41, 55, 0.95);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      cursor: zoom-out;
+      padding: 1rem;
+    }
+    .lightbox.active {
+      display: flex;
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .lightbox-content {
+      max-width: 95%;
+      max-height: 85%;
+      border-radius: var(--radius-md);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      animation: zoomIn 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    @keyframes zoomIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .lightbox-close {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      color: #fff;
+      font-size: 2.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      line-height: 1;
+      transition: var(--transition);
+      z-index: 2001;
+    }
+    .lightbox-close:hover {
+      color: var(--secondary);
+    }
+    .lightbox-caption {
+      margin-top: 1rem;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-align: center;
+      font-family: var(--font-sans);
+    }
   </style>
 </head>
 <body>
@@ -1204,26 +1266,48 @@
       // --- 準備できたイラスト画像を表示 ---
       const imgContainer = document.getElementById("r-illustration-container");
       imgContainer.innerHTML = "";
-      
-      let containerClass = "illustration-container";
-      if (r.isComposite) containerClass += " composite";
-      else if (r.isHybrid) containerClass += " hybrid";
-      imgContainer.className = containerClass;
+      imgContainer.className = "illustration-container";
       
       const addImg = (key) => {
         const img = document.createElement("img");
         img.src = `images/${key}.png`;
         img.alt = typeDetails[key].name;
         img.className = "illustration-img";
+        img.style.cursor = "zoom-in";
+        img.addEventListener("click", () => openLightbox(img.src, img.alt));
         imgContainer.appendChild(img);
       };
 
       addImg(r.pk);
+
+      // 副傾向テキストの表示
       if (r.isComposite) {
-        addImg(r.sk);
-        addImg(r.tk);
+        const subNote = document.createElement("p");
+        subNote.className = "illustration-subnote";
+        subNote.style.fontSize = "0.82rem";
+        subNote.style.color = "var(--text-sub)";
+        subNote.style.marginTop = "0.5rem";
+        subNote.style.textAlign = "center";
+        subNote.innerHTML = `🔍 <strong>画像タップで拡大表示します</strong><br>※副傾向として「${st.name}」「${tt.name}」の特徴も場面によって現れやすい傾向があります。`;
+        imgContainer.appendChild(subNote);
       } else if (r.isHybrid) {
-        addImg(r.sk);
+        const subNote = document.createElement("p");
+        subNote.className = "illustration-subnote";
+        subNote.style.fontSize = "0.82rem";
+        subNote.style.color = "var(--text-sub)";
+        subNote.style.marginTop = "0.5rem";
+        subNote.style.textAlign = "center";
+        subNote.innerHTML = `🔍 <strong>画像タップで拡大表示します</strong><br>※副傾向として「${st.name}」の特徴も場面によって現れやすい傾向があります。`;
+        imgContainer.appendChild(subNote);
+      } else {
+        const subNote = document.createElement("p");
+        subNote.className = "illustration-subnote";
+        subNote.style.fontSize = "0.78rem";
+        subNote.style.color = "var(--text-muted)";
+        subNote.style.marginTop = "0.5rem";
+        subNote.style.textAlign = "center";
+        subNote.textContent = "🔍 画像タップで拡大表示します";
+        imgContainer.appendChild(subNote);
       }
 
       // S3: Reason
@@ -1616,6 +1700,37 @@
       ctx.quadraticCurveTo(x, y, x + r, y);
       ctx.closePath();
     }
+
+    // Lightbox Control
+    function openLightbox(src, alt) {
+      const lightbox = document.getElementById("lightbox");
+      const lightboxImg = document.getElementById("lightbox-img");
+      const lightboxCap = document.getElementById("lightbox-caption");
+      
+      lightboxImg.src = src;
+      lightboxImg.alt = alt;
+      lightboxCap.textContent = alt;
+      
+      lightbox.classList.add("active");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeLightbox() {
+      const lightbox = document.getElementById("lightbox");
+      lightbox.classList.remove("active");
+      document.body.style.overflow = "";
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") closeLightbox();
+    });
   </script>
+
+  <!-- Lightbox Modal for Image Expansion -->
+  <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+    <span class="lightbox-close">&times;</span>
+    <img id="lightbox-img" class="lightbox-content" src="" alt="">
+    <div id="lightbox-caption" class="lightbox-caption"></div>
+  </div>
 </body>
 </html>
