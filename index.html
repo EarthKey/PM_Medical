@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>薬剤師のミスのクセ診断 | 調剤・監査・業務バイアス判定</title>
+  <meta name="description" content="薬剤師が良かれと思ってやってしまう「強みの暴走」による思考バイアスを、20問の診断で可視化。明日からの行動変容につなげる教育ツール。">
+
+  <!-- Google Fonts: Playfair Display + Noto Serif JP + Source Sans 3 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Noto+Serif+JP:wght@400;500;700;900&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* ==========================================================================
+       Design Tokens — HBR Editorial Style
+       ========================================================================== */
+    :root {
+      --font-display: 'Playfair Display', 'Noto Serif JP', serif;
+      --font-body: 'Noto Serif JP', serif;
+      --font-sans: 'Source Sans 3', sans-serif;
+
+      /* User Defined Colors */
+      --primary: #2F6F6D;
+      --secondary: #6BA8A9;
+      --ok: #22C55E;
+      --ng: #EF4444;
+      --accent: #E89B3A;
+      --bg: #F7F8F6;
+      --card: #FFFFFF;
+      --text: #1F2937;
+
+      /* Compatibility mapping */
+      --bg-main: var(--bg);
+      --bg-card: var(--card);
+      --bg-warm: #ECF2F2;
+      --text-main: var(--text);
+      --text-sub: #4B5563;
+      --text-muted: #9CA3AF;
+      --primary-dark: #225150;
+      --primary-light: rgba(47, 111, 109, 0.08);
+      --border: #E5E7EB;
+      --border-strong: #D1D5DB;
+      --rule-color: var(--primary);
+
+      /* 6 Type Colors */
+      --color-pacesetter: #D35400;
+      --color-coach: #27AE60;
+      --color-authoritative: #C0392B;
+      --color-affiliative: #D4A017;
+      --color-visionary: #7D3C98;
+      --color-democratic: #2874A6;
+
+      --shadow-card: 0 1px 3px rgba(31, 41, 55, 0.06), 0 1px 2px rgba(31, 41, 55, 0.04);
+      --shadow-elevated: 0 4px 16px rgba(31, 41, 55, 0.08), 0 2px 6px rgba(31, 41, 55, 0.04);
+      --shadow-hero: 0 8px 32px rgba(31, 41, 55, 0.10);
+
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --max-width: 520px;
+    }
+
+    /* ==========================================================================
+       Reset & Base
+       ========================================================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem 1rem;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ==========================================================================
+       App Container
+       ========================================================================== */
+    .app {
+      width: 100%;
+      max-width: var(--max-width);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-hero);
+      position: relative;
+    }
+
+    /* ==========================================================================
+       Screens (common)
+       ========================================================================== */
+    .screen {
+      display: none;
+      padding: 2.5rem 2rem;
+      animation: screenEnter 0.5s ease-out forwards;
+    }
+    .screen.active { display: block; }
+
+    @keyframes screenEnter {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Editorial rule (horizontal line) */
+    .rule {
+      border: none;
+      border-top: 2px solid var(--rule-color);
+      width: 48px;
+      margin: 1.5rem 0;
+    }
+    .rule--wide { width: 100%; border-top-width: 1px; border-color: var(--border); }
+    .rule--center { margin-left: auto; margin-right: auto; }
+
+    /* ==========================================================================
+       INTRO SCREEN
+       ========================================================================== */
+    .intro-eyebrow {
+      font-family: var(--font-sans);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .intro-title {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1.3;
+      color: var(--text-main);
+      margin-bottom: 0.25rem;
+    }
+
+    .intro-subtitle {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 400;
+      font-style: italic;
+      color: var(--text-sub);
+      margin-bottom: 1.25rem;
+    }
+
+    .intro-lead {
+      font-size: 0.95rem;
+      color: var(--text-sub);
+      margin-bottom: 1rem;
+      line-height: 1.9;
+    }
+    .intro-lead strong { color: var(--text-main); }
+
+    .intro-meta {
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+    .intro-meta span { display: flex; align-items: center; gap: 0.3rem; }
+
+    .btn-primary {
+      display: block;
+      width: 100%;
+      padding: 1rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-primary:active { transform: scale(0.98); }
+
+    /* ==========================================================================
+       QUIZ SCREEN
+       ========================================================================== */
+    .quiz-progress { margin-bottom: 2rem; }
+
+    .progress-track {
+      width: 100%;
+      height: 3px;
+      background: var(--border);
+      margin-bottom: 0.5rem;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--primary);
+      transition: width 0.35s ease;
+    }
+
+    .progress-info {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .q-card {
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .q-number {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--primary);
+      opacity: 0.18;
+      position: absolute;
+      right: 2rem;
+      top: 5.5rem;
+      line-height: 1;
+      user-select: none;
+    }
+    .q-text {
+      font-size: 1.05rem;
+      font-weight: 500;
+      line-height: 1.8;
+      position: relative;
+      z-index: 1;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .opt-btn {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      color: var(--text-main);
+      text-align: left;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      padding-left: 2.5rem;
+    }
+    .opt-btn::before {
+      content: '';
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      border: 1.5px solid var(--border-strong);
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+    .opt-btn:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    .opt-btn:hover::before {
+      border-color: var(--primary);
+      background: var(--primary);
+    }
+
+    .btn-back {
+      background: none;
+      border: none;
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.5rem 0;
+      transition: var(--transition);
+    }
+    .btn-back:hover { color: var(--text-main); }
+    .btn-back:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* ==========================================================================
+       LOADING SCREEN
+       ========================================================================== */
+    .loading-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 5rem 2rem;
+      text-align: center;
+    }
+    .loading-bar {
+      width: 160px;
+      height: 2px;
+      background: var(--border);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .loading-bar-inner {
+      width: 40%;
+      height: 100%;
+      background: var(--primary);
+      animation: loadSlide 1.2s ease-in-out infinite;
+    }
+    @keyframes loadSlide {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(400%); }
+    }
+    .loading-text {
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* ==========================================================================
+       RESULT SCREEN
+       ========================================================================== */
+    .result-screen { padding: 0; }
+    .result-section {
+      padding: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .result-section:last-child { border-bottom: none; }
+
+    .section-label {
+      font-family: var(--font-sans);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    /* --- Section 1: Misses (Top Alert) --- */
+    .misses-section {
+      background: linear-gradient(135deg, #FEF2F2 0%, #FFFDFD 100%);
+      border-bottom: 2px solid var(--ng);
+    }
+    .misses-heading {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--ng);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .misses-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .misses-item {
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding-left: 1.5rem;
+      position: relative;
+      line-height: 1.6;
+    }
+    .misses-item::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--ng);
+      font-weight: 400;
+    }
+
+    /* --- Section 2: Type Header --- */
+    .type-section {
+      text-align: center;
+      padding: 2.5rem 2rem;
+    }
+    .type-emoji {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .type-name {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 900;
+      line-height: 1.2;
+      margin-bottom: 0.25rem;
+    }
+    .type-label {
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-sub);
+      margin-bottom: 1rem;
+    }
+    .type-ratio-badge {
+      display: inline-block;
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.35rem 1rem;
+      border: 1px solid var(--border-strong);
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+    .type-catchcopy {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-style: italic;
+      color: var(--text-sub);
+      line-height: 1.7;
+    }
+
+    .illustration-container {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .illustration-img {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+    }
+    .illustration-container.hybrid .illustration-img {
+      max-width: 48%;
+    }
+
+    /* --- Section 3: Reason --- */
+    .reason-text {
+      font-size: 0.95rem;
+      line-height: 2;
+      color: var(--text-sub);
+      border-left: 3px solid var(--primary);
+      padding-left: 1.25rem;
+    }
+
+    /* --- Section 4: Graphs --- */
+    .bars-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      margin-bottom: 2rem;
+    }
+    .bar-row { display: flex; flex-direction: column; gap: 0.2rem; }
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .bar-track {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-warm);
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 1s ease-out;
+    }
+
+    .chart-wrap {
+      display: flex;
+      justify-content: center;
+      padding: 0.5rem 0;
+    }
+    .chart-wrap canvas {
+      max-width: 320px;
+      max-height: 280px;
+    }
+
+    /* --- Section 5: OK Action + Serifu --- */
+    .ok-section { background: #F0FDF4; }
+    .ok-heading {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ok);
+      margin-bottom: 1rem;
+    }
+    .ok-action {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      line-height: 1.7;
+    }
+    .serifu-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 1rem 1.25rem;
+      position: relative;
+    }
+    .serifu-label {
+      font-family: var(--font-sans);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+      display: block;
+    }
+    .serifu-text {
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.6;
+      padding-right: 2rem;
+    }
+    .btn-copy {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: 1px solid var(--border);
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+    .btn-copy:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* --- Section 6: Sub card --- */
+    .sub-section {
+      border-left: 3px solid var(--text-muted);
+      margin: 0 2rem;
+      padding: 1rem 1.25rem;
+      border-bottom: none;
+    }
+    .sub-text { font-size: 0.9rem; color: var(--text-sub); line-height: 1.9; }
+
+    /* --- Section 7: Awareness --- */
+    .awareness-section {
+      background: rgba(232, 155, 58, 0.08);
+      border-left: 3px solid var(--accent);
+    }
+
+    /* --- Section 8: Memo & Checklist --- */
+    .memo-heading {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .checklist { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font-family: var(--font-sans);
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+    .check-item input[type="checkbox"] { margin-top: 0.25rem; accent-color: var(--primary); cursor: pointer; }
+    .add-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .input-action {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
+      background: var(--bg-main);
+      color: var(--text-main);
+    }
+    .btn-add {
+      padding: 0.5rem 0.85rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .memo-textarea {
+      width: 100%;
+      height: 80px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      background: var(--bg-main);
+      color: var(--text-main);
+      resize: none;
+      margin-bottom: 0.5rem;
+    }
+    .memo-note {
+      font-family: var(--font-sans);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    /* --- Section 9: Actions --- */
+    .actions-section { background: var(--bg-warm); }
+    .action-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 1.25rem;
+    }
+    .btn-action {
+      display: block;
+      width: 100%;
+      padding: 0.85rem;
+      font-family: var(--font-sans);
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+    }
+    .btn-action--fill { background: var(--primary); color: #fff; }
+    .btn-action--fill:hover { background: var(--primary-dark); }
+    .btn-action--outline {
+      background: var(--bg-card);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+    .btn-action--outline:hover { background: var(--primary-light); }
+    .btn-action--ghost {
+      background: transparent;
+      color: var(--text-sub);
+      border: 1px solid var(--border-strong);
+    }
+    .btn-action--ghost:hover { border-color: var(--text-main); color: var(--text-main); }
+
+    .study-guide {
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+    .study-guide strong { display: block; margin-bottom: 0.25rem; color: var(--text-main); }
+
+    /* Hidden print placeholder */
+    .print-memo-out { display: none; }
+
+    /* ==========================================================================
+       PRINT STYLES
+       ========================================================================== */
+    @media print {
+      body { background: #fff !important; padding: 0 !important; display: block !important; }
+      .app { box-shadow: none !important; border: none !important; max-width: 100% !important; background: #fff !important; }
+      .screen { display: none !important; }
+      #result-screen { display: block !important; padding: 0 !important; }
+      .actions-section, .add-row, .btn-copy, .study-guide, .memo-note { display: none !important; }
+      .result-section { border-bottom: 1px solid #ccc !important; }
+      .misses-section { background: #fff !important; border: 1px solid var(--ng) !important; }
+      .ok-section { background: #fff !important; }
+      .awareness-section { background: #fff !important; }
+      .type-section { background: #fff !important; }
+      .chart-wrap { page-break-inside: avoid; }
+      .memo-textarea { display: none !important; }
+      .print-memo-out { display: block !important; border: 1px solid #ccc; padding: 0.75rem; min-height: 60px; font-size: 0.85rem; white-space: pre-wrap; }
+    }
+
+    /* ==========================================================================
+       RESPONSIVE
+       ========================================================================== */
+    @media (max-width: 560px) {
+      .screen { padding: 1.75rem 1.25rem; }
+      .result-section { padding: 1.5rem 1.25rem; }
+      .intro-title { font-size: 1.6rem; }
+      .type-name { font-size: 1.4rem; }
+      .q-number { font-size: 2.5rem; right: 1.25rem; top: 4.5rem; }
+      .sub-section { margin: 0 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- ================================================================
+         INTRO SCREEN
+         ================================================================ -->
+    <div id="intro-screen" class="screen active">
+      <p class="intro-eyebrow">Pharmacist Bias Assessment</p>
+      <h1 class="intro-title">あなたが繰り返す<br>ミスのクセ診断</h1>
+      <p class="intro-subtitle">— 調剤・監査・現場業務編 —</p>
+      <hr class="rule">
+
+      <p class="intro-lead">
+        <strong>「良かれと思ってやっている調剤や監査の確認行動が、思わぬミスの原因になっていませんか？」</strong>
+      </p>
+      <p class="intro-lead">
+        この診断は、あなたの性格を当てるものではありません。現場で無意識に暴走しがちな「自分の強みのクセ（バイアス）」をあぶり出すためのものです。
+      </p>
+      <p class="intro-lead">
+        調剤、監査、疑義照会、指導などの「現場シーン」をイメージして、直感で回答してください。
+      </p>
+
+      <div class="intro-meta">
+        <span>📋 全20問</span>
+        <span>⏱ 約3分</span>
+        <span>🔒 回答は端末内のみ保存</span>
+      </div>
+
+      <button id="btn-start" class="btn-primary">診断を開始する</button>
+    </div>
+
+    <!-- ================================================================
+         QUIZ SCREEN
+         ================================================================ -->
+    <div id="quiz-screen" class="screen">
+      <div class="quiz-progress">
+        <div class="progress-track">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+        <div class="progress-info">
+          <span id="progress-num">質問 1 / 20</span>
+          <span id="progress-pct">0%</span>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <span id="q-number" class="q-number">01</span>
+        <p id="q-text" class="q-text"></p>
+      </div>
+
+      <div class="options">
+        <button class="opt-btn" data-value="2">かなり当てはまる</button>
+        <button class="opt-btn" data-value="1">やや当てはまる</button>
+        <button class="opt-btn" data-value="0">どちらとも言えない</button>
+        <button class="opt-btn" data-value="-1">あまり当てはまらない</button>
+        <button class="opt-btn" data-value="-2">全く当てはまらない</button>
+      </div>
+
+      <button id="btn-back" class="btn-back" disabled>← 前の質問に戻る</button>
+    </div>
+
+    <!-- ================================================================
+         LOADING SCREEN
+         ================================================================ -->
+    <div id="loading-screen" class="screen">
+      <div class="loading-wrap">
+        <div class="loading-bar"><div class="loading-bar-inner"></div></div>
+        <p class="loading-text">あなたの無意識のクセを分析中…</p>
+      </div>
+    </div>
+
+    <!-- ================================================================
+         RESULT SCREEN
+         ================================================================ -->
+    <div id="result-screen" class="screen result-screen">
+
+      <!-- S1: Misses -->
+      <div class="result-section misses-section">
+        <p class="section-label">Assessment Result</p>
+        <h2 class="misses-heading">⚠ あなたが最も起こしやすいミス</h2>
+        <ul id="r-misses" class="misses-list"></ul>
+      </div>
+
+      <!-- S2: Type Header -->
+      <div id="r-type-section" class="result-section type-section">
+        <span id="r-emoji" class="type-emoji"></span>
+        <h2 id="r-type-name" class="type-name"></h2>
+        <p id="r-type-label" class="type-label"></p>
+        <div id="r-ratio" class="type-ratio-badge"></div>
+        <div id="r-illustration-container" class="illustration-container"></div>
+        <p id="r-catchcopy" class="type-catchcopy"></p>
+      </div>
+
+      <!-- S3: Reason -->
+      <div class="result-section">
+        <p class="section-label">Why This Happens</p>
+        <p id="r-reason" class="reason-text"></p>
+      </div>
+
+      <!-- S4: Graphs -->
+      <div class="result-section">
+        <p class="section-label">Bias Tendency Map</p>
+        <div id="r-bars" class="bars-wrap"></div>
+        <hr class="rule rule--wide">
+        <div class="chart-wrap">
+          <canvas id="radar-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- S5: OK Action -->
+      <div class="result-section ok-section">
+        <p class="section-label">Tomorrow's Action</p>
+        <h3 class="ok-heading">✅ 明日からできるOK行動</h3>
+        <p id="r-ok-action" class="ok-action"></p>
+        <div class="serifu-box">
+          <span class="serifu-label">Practical Phrase</span>
+          <p id="r-serifu" class="serifu-text"></p>
+          <button id="btn-copy" class="btn-copy" title="コピー">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- S6: Sub tendency (single type only) -->
+      <div id="r-sub-section" class="sub-section" style="display:none;">
+        <p class="section-label">Sub Tendency</p>
+        <p id="r-sub-text" class="sub-text"></p>
+      </div>
+
+      <!-- S7: Awareness (Q20 flag) -->
+      <div id="r-awareness-section" class="result-section awareness-section" style="display:none;">
+        <p class="section-label">Self-Awareness</p>
+        <p id="r-awareness-text" class="sub-text"></p>
+      </div>
+
+      <!-- S8: Memo & Checklist -->
+      <div class="result-section">
+        <h3 class="memo-heading">📝 振り返りメモ ＆ 今日から試す行動</h3>
+        <div id="r-checklist" class="checklist"></div>
+        <div class="add-row">
+          <input type="text" id="input-add" class="input-action" placeholder="自分で試す行動を追加…">
+          <button id="btn-add" class="btn-add">追加</button>
+        </div>
+        <textarea id="memo-area" class="memo-textarea" placeholder="今日の気づきを自由に書き留めてください…"></textarea>
+        <div id="print-memo" class="print-memo-out"></div>
+        <p class="memo-note">🔒 データはこの端末のlocalStorageにのみ保存されます。外部送信はされません。</p>
+      </div>
+
+      <!-- S9: Actions -->
+      <div class="result-section actions-section">
+        <p class="section-label">Save & Share</p>
+        <div class="action-stack">
+          <button id="btn-print" class="btn-action btn-action--fill">🖨 結果を印刷 / PDF保存</button>
+          <button id="btn-dl-img" class="btn-action btn-action--outline">📷 結果画像をダウンロード</button>
+          <button id="btn-share-x" class="btn-action btn-action--outline">𝕏 行動宣言をポスト</button>
+          <button id="btn-restart" class="btn-action btn-action--ghost">もう一度診断する</button>
+        </div>
+        <div class="study-guide">
+          <strong>📚 院内勉強会・指導での活用法</strong>
+          印刷した結果を「自己分析シート」として指導薬剤師と共有したり、チームの勉強会でアイスブレイクとして活用できます。
+        </div>
+      </div>
+
+    </div><!-- /result-screen -->
+  </div><!-- /app -->
+
+  <!-- ================================================================
+       JAVASCRIPT
+       ================================================================ -->
+  <script>
+    // ================================================================
+    // 1. DATA: Questions (20)
+    // ================================================================
+    const questions = [
+      { id: 1,  text: "患者さんの理解を確認する前に、次の説明へ進んでしまうことがある。", type: "pacesetter" },
+      { id: 2,  text: "限られた時間の中では、患者さんの反応よりも説明を終えることを優先してしまうことがある。", type: "pacesetter" },
+      { id: 3,  text: "相手が黙っていると、理解したものとして説明を続けてしまうことがある。", type: "pacesetter" },
+      { id: 4,  text: "患者さんが服薬ルールを守っていなくても、本人の意思を尊重して指摘を控えてしまうことがある。", type: "coach" },
+      { id: 5,  text: "後輩や同僚のやり方に気になる点があっても、自分で気づくまで待ってしまうことがある。", type: "coach" },
+      { id: 6,  text: "気になる点があっても、相手から相談されるまで待ってしまうことがある。", type: "coach" },
+      { id: 7,  text: "相手の話を最後まで聞く前に、自分なりの答えが頭に浮かんでしまうことがある。", type: "authoritative" },
+      { id: 8,  text: "似たケースを経験していると、早めに方針を決めてしまうことがある。", type: "authoritative" },
+      { id: 9,  text: "医師へ疑義照会するとき、自分の考えが固まっていると相手の意見を聞く前に提案してしまうことがある。", type: "authoritative" },
+      { id: 10, text: "患者さんとの関係が壊れるのが怖くて、副作用のリスクなど耳の痛い説明を控えてしまうことがある。", type: "affiliative" },
+      { id: 11, text: "患者さんに「大丈夫です」と言われると、本当に大丈夫か確認せずに引いてしまうことがある。", type: "affiliative" },
+      { id: 12, text: "多職種カンファレンスで他職種の意見に異論があっても、場の空気を壊したくなくて発言を控えてしまうことがある。", type: "affiliative" },
+      { id: 13, text: "今の困りごとよりも、治療を続ける大切さを優先して説明してしまうことがある。", type: "visionary" },
+      { id: 14, text: "カンファレンスで治療方針の議論に熱中して、患者が今訴えている症状への対応が後回しになってしまうことがある。", type: "visionary" },
+      { id: 15, text: "残薬を確認するとき、服薬の意義を再説明することに集中して、なぜ飲めなかったのかを十分に聞けていないことがある。", type: "visionary" },
+      { id: 16, text: "選択肢を説明したあと、最終的な判断は患者さんに委ねてしまうことがある。", type: "democratic" },
+      { id: 17, text: "後輩から「どうすればいいですか」と聞かれたとき、答えを教えるより考え方を並べて本人に選ばせてしまうことがある。", type: "democratic" },
+      { id: 18, text: "情報を丁寧に並べることに集中して、結局どれがおすすめか伝えずに終わってしまうことがある。", type: "democratic" },
+      { id: 19, text: "忙しい日ほど、自分のいつものパターンで対応を済ませてしまうことがある。", type: "correction_q19" },
+      { id: 20, text: "周囲から指摘されて初めて、自分の対応のクセに気づくことがある。", type: "correction_q20" }
+    ];
+
+    // ================================================================
+    // 2. DATA: 6 Type Details
+    // ================================================================
+    const typeDetails = {
+      pacesetter: {
+        name: "ペースセッター型",
+        label: "説明しすぎ・引っ張りすぎ型",
+        emoji: "🔥",
+        color: "#D35400",
+        misses: [
+          "説明過多（一方的に話し続ける）",
+          "確認不足（患者の理解度を確かめない）",
+          "情報過多（一度に多くの情報を与えすぎる）"
+        ],
+        bias: "正しく伝えようとするあまり、患者の理解や反応を待たずに説明を進めてしまう",
+        okAction: "1つ説明したら必ず理解確認を入れる",
+        serifu: "「ここまでで、わかりにくいところはありませんか？」",
+        catchcopy: "「説明しているだけで、伝わっていないかもしれません」"
+      },
+      coach: {
+        name: "コーチ型",
+        label: "見守りすぎ型",
+        emoji: "🧭",
+        color: "#27AE60",
+        misses: [
+          "介入不足（必要な指導や介入を行わない）",
+          "放置（問題に気づいても見守りすぎる）",
+          "フィードバック不足（改善すべき点を具体的に伝えない）"
+        ],
+        bias: "相手に任せることを優先しすぎて、必要な指導や介入をしないまま進めてしまう",
+        okAction: "説明の最後に、必ず1つだけ自分の意見を伝える",
+        serifu: "「私はこうした方がいいと思いますが、どう思いますか？」",
+        catchcopy: "「何も言わないのも'放置'です」"
+      },
+      authoritative: {
+        name: "強制型",
+        label: "正解を急ぎすぎ型",
+        emoji: "⚡",
+        color: "#C0392B",
+        misses: [
+          "決めつけ（患者や相手の考えを聞く前に結論を出す）",
+          "思い込み（過去の類似ケースをそのまま当てはめる）",
+          "背景確認不足（患者の生活状況や本音を聞き流す）"
+        ],
+        bias: "自分の成功体験や考えを優先し、相手の背景を十分に確認せずに結論を出してしまう",
+        okAction: "最初の30秒は聞き役になる",
+        serifu: "「まず、どう考えているか教えてください」",
+        catchcopy: "あなたの「正論」が、相手の口を閉ざしているかもしれません"
+      },
+      affiliative: {
+        name: "関係重視型",
+        label: "嫌われたくない・なあなあ型",
+        emoji: "💛",
+        color: "#D4A017",
+        misses: [
+          "リスク説明不足（副作用など耳の痛い話を避ける）",
+          "なあなあ対応（患者の『大丈夫』を鵜呑みにして引いてしまう）",
+          "衝突回避（必要な指導や生活改善の促しを遠慮する）"
+        ],
+        bias: "患者さんとの「良い関係」や「場の空気」を優先するあまり、副作用のリスク指摘や生活習慣の改善など、耳の痛い指導を避けてしまう",
+        okAction: "指導の最後に、リスクや守ってほしいことを1点だけはっきり伝える",
+        serifu: "「〇〇さんの健康のために、これだけは約束してください」",
+        catchcopy: "あなたの「優しさ」が、リスクを見逃しているかもしれません"
+      },
+      visionary: {
+        name: "先見型",
+        label: "理想・未来語りすぎ型",
+        emoji: "🔮",
+        color: "#7D3C98",
+        misses: [
+          "不安喚起（高い治療目標や将来のリスクばかりを強調する）",
+          "理想論（『乗り越えれば良くなる』と現在のしんどさを流す）",
+          "先回りしすぎ（患者が今の悩みを話す前に未来の提案を急ぐ）"
+        ],
+        bias: "「治療の成功」や「将来の健康」といった大きな目標ばかりを語り、患者さんが抱える「今日のしんどさ」や「目の前の副作用」に目が向かない",
+        okAction: "まず相手が口にした「今のしんどさ」を復唱して受け止める",
+        serifu: "「今、すごくしんどい状況なんですね。まずはそこから対策を考えましょう」",
+        catchcopy: "明るい未来を語る前に、今日のしんどさに目を向けてください"
+      },
+      democratic: {
+        name: "民主型",
+        label: "選択肢・丸投げ型",
+        emoji: "🗳️",
+        color: "#2874A6",
+        misses: [
+          "決断回避（専門家としてのおすすめや推奨を提示しない）",
+          "責任分散（判断をすべて患者側に委ねてしまう）",
+          "選択肢過多（情報を丁寧に並べすぎて、患者を迷わせる）"
+        ],
+        bias: "患者さんの自己決定を尊重しようとするあまり、情報や選択肢を並べるだけで、専門家としての方向性や推奨を提示せず、相手を迷わせてしまう",
+        okAction: "選択肢を提示した上で、「プロとしての私のおすすめ」を1つ添える",
+        serifu: "「選択肢はAとBがありますが、〇〇さんの生活ならAが良いと私は思います。どうでしょうか？」",
+        catchcopy: "「どうしたいですか？」は、時に不親切な丸投げになります"
+      }
+    };
+
+    const TYPE_KEYS = ["pacesetter", "coach", "authoritative", "affiliative", "visionary", "democratic"];
+
+    function getPercentage(score) {
+      return Math.min(100, Math.max(0, Math.round(((score + 6) / 12) * 100)));
+    }
+
+    // ================================================================
+    // 3. APPLICATION STATE
+    // ================================================================
+    let currentIdx = 0;
+    let answers = new Array(questions.length).fill(null);
+    let dynamicChecklist = [];
+    let radarChartInstance = null;
+
+    // DOM references
+    const $intro   = document.getElementById("intro-screen");
+    const $quiz    = document.getElementById("quiz-screen");
+    const $loading = document.getElementById("loading-screen");
+    const $result  = document.getElementById("result-screen");
+
+    // ================================================================
+    // 4. SCREEN NAVIGATION
+    // ================================================================
+    function showScreen(el) {
+      [$intro, $quiz, $loading, $result].forEach(s => s.classList.remove("active"));
+      el.classList.add("active");
+    }
+
+    // ================================================================
+    // 5. QUIZ LOGIC
+    // ================================================================
+    document.getElementById("btn-start").addEventListener("click", () => {
+      currentIdx = 0;
+      answers = new Array(questions.length).fill(null);
+      showScreen($quiz);
+      renderQ();
+    });
+
+    document.getElementById("btn-back").addEventListener("click", () => {
+      if (currentIdx > 0) { currentIdx--; renderQ(); }
+    });
+
+    document.querySelectorAll(".opt-btn").forEach(btn => {
+      btn.addEventListener("click", e => {
+        answers[currentIdx] = parseInt(e.currentTarget.dataset.value);
+        if (currentIdx < questions.length - 1) {
+          currentIdx++;
+          renderQ();
+        } else {
+          showScreen($loading);
+          setTimeout(() => {
+            const result = analyze();
+            renderResult(result);
+            showScreen($result);
+          }, 1500);
+        }
+      });
+    });
+
+    function renderQ() {
+      const q = questions[currentIdx];
+      document.getElementById("q-text").textContent = q.text;
+      document.getElementById("q-number").textContent = String(q.id).padStart(2, "0");
+
+      const pct = (currentIdx / questions.length) * 100;
+      document.getElementById("progress-fill").style.width = pct + "%";
+      document.getElementById("progress-num").textContent = `質問 ${currentIdx + 1} / ${questions.length}`;
+      document.getElementById("progress-pct").textContent = Math.round(pct) + "%";
+      document.getElementById("btn-back").disabled = (currentIdx === 0);
+    }
+
+    // ================================================================
+    // 6. SCORING & ANALYSIS
+    // ================================================================
+    function analyze() {
+      const scores = {
+        pacesetter:    (answers[0] || 0) + (answers[1] || 0) + (answers[2] || 0),
+        coach:         (answers[3] || 0) + (answers[4] || 0) + (answers[5] || 0),
+        authoritative: (answers[6] || 0) + (answers[7] || 0) + (answers[8] || 0),
+        affiliative:   (answers[9] || 0) + (answers[10] || 0) + (answers[11] || 0),
+        visionary:     (answers[12] || 0) + (answers[13] || 0) + (answers[14] || 0),
+        democratic:    (answers[15] || 0) + (answers[16] || 0) + (answers[17] || 0)
+      };
+
+      // Q19 correction: if "かなり" or "やや", boost top type +1
+      if ((answers[18] || 0) >= 1) {
+        const topKey = TYPE_KEYS.reduce((a, b) => scores[a] > scores[b] ? a : b);
+        scores[topKey] += 1;
+      }
+
+      // Q20 awareness flag
+      const isAwarenessLow = (answers[19] || 0) >= 1;
+
+      // Sort
+      const sorted = TYPE_KEYS.slice().sort((a, b) => scores[b] - scores[a]);
+      const pk = sorted[0], sk = sorted[1];
+      const ps = scores[pk], ss = scores[sk];
+
+      // Hybrid: diff <= 1
+      const isHybrid = (ps - ss) <= 1;
+
+      // Ratio (normalize to 0-12)
+      const pn = ps + 6, sn = ss + 6, total = pn + sn;
+      let pRatio = 50, sRatio = 50;
+      if (total > 0) { pRatio = Math.round((pn / total) * 100); sRatio = 100 - pRatio; }
+
+      return { pk, sk, isHybrid, pRatio, sRatio, scores, isAwarenessLow };
+    }
+
+    // ================================================================
+    // 7. RESULT RENDERING
+    // ================================================================
+    function renderResult(r) {
+      const pt = typeDetails[r.pk], st = typeDetails[r.sk];
+
+      // S1: Misses
+      const missesUl = document.getElementById("r-misses");
+      missesUl.innerHTML = "";
+      let missList = [...pt.misses];
+      if (r.isHybrid) {
+        missList = [pt.misses[0], st.misses[0], pt.misses[1], st.misses[1], pt.misses[2], st.misses[2]];
+      }
+      missList.slice(0, r.isHybrid ? 4 : 3).forEach(m => {
+        const li = document.createElement("li");
+        li.className = "misses-item";
+        li.textContent = m;
+        missesUl.appendChild(li);
+      });
+
+      // S2: Type
+      const typeSection = document.getElementById("r-type-section");
+      typeSection.style.borderBottom = `3px solid ${pt.color}`;
+
+      document.getElementById("r-emoji").textContent = r.isHybrid ? `${pt.emoji}  ×  ${st.emoji}` : pt.emoji;
+      document.getElementById("r-type-name").textContent = r.isHybrid ? `${pt.name} × ${st.name}` : pt.name;
+      document.getElementById("r-type-label").textContent = r.isHybrid ? `${pt.label} × ${st.label}` : pt.label;
+
+      if (r.isHybrid) {
+        document.getElementById("r-ratio").textContent = `${pt.name.replace("型","")} ${r.pRatio}% / ${st.name.replace("型","")} ${r.sRatio}%`;
+      } else {
+        document.getElementById("r-ratio").textContent = `バイアス傾向度: ${getPercentage(r.scores[r.pk])}%`;
+      }
+
+      // --- 準備できたイラスト画像を表示 ---
+      const imgContainer = document.getElementById("r-illustration-container");
+      imgContainer.innerHTML = "";
+      imgContainer.className = "illustration-container" + (r.isHybrid ? " hybrid" : "");
+      
+      const addImg = (key) => {
+        const img = document.createElement("img");
+        img.src = `images/${key}.png`;
+        img.alt = typeDetails[key].name;
+        img.className = "illustration-img";
+        imgContainer.appendChild(img);
+      };
+
+      addImg(r.pk);
+      if (r.isHybrid) {
+        addImg(r.sk);
+      }
+
+      document.getElementById("r-catchcopy").textContent = r.isHybrid ? `${pt.catchcopy} ／ ${st.catchcopy}` : pt.catchcopy;
+
+      // S3: Reason
+      const reasonEl = document.getElementById("r-reason");
+      if (r.isHybrid) {
+        reasonEl.textContent = `${pt.name}のズレ【${pt.bias}】と、${st.name}のズレ【${st.bias}】が状況に応じて複合的に出現しやすい傾向があります。`;
+      } else {
+        reasonEl.textContent = pt.bias + "傾向があります。";
+      }
+
+      // S4: Bars
+      renderBars(r.scores);
+      // S4b: Radar
+      renderRadar(r.scores, r.pk, r.sk, r.isHybrid);
+
+      // S5: OK Action + Serifu
+      if (r.isHybrid) {
+        document.getElementById("r-ok-action").innerHTML = `① ${pt.okAction}<br>② ${st.okAction}`;
+      } else {
+        document.getElementById("r-ok-action").textContent = pt.okAction;
+      }
+      document.getElementById("r-serifu").textContent = pt.serifu;
+
+      // S6: Sub tendency (single only)
+      const subEl = document.getElementById("r-sub-section");
+      if (r.isHybrid) {
+        subEl.style.display = "none";
+      } else {
+        subEl.style.display = "block";
+        document.getElementById("r-sub-text").textContent =
+          `2番目に高いスコアは「${st.name}」でした。${st.bias}といった側面も部分的に出やすい傾向があります。`;
+      }
+
+      // S7: Awareness
+      const awaEl = document.getElementById("r-awareness-section");
+      if (r.isAwarenessLow) {
+        awaEl.style.display = "block";
+        document.getElementById("r-awareness-text").textContent =
+          "あなたは自分の対応バイアスやズレについて、周囲から指摘されて初めてハッと気づく傾向があります。定期的に同僚や指導スタッフに「自分の説明、伝わりやすかったですか？」と自らフィードバックを求めるのが効果的です。";
+      } else {
+        awaEl.style.display = "none";
+      }
+
+      // S8: Memo & Checklist
+      initMemoChecklist(r.pk, r.isHybrid ? r.sk : null);
+    }
+
+    // ================================================================
+    // 8. BAR CHART (CSS)
+    // ================================================================
+    function renderBars(scores) {
+      const wrap = document.getElementById("r-bars");
+      wrap.innerHTML = "";
+      TYPE_KEYS.forEach(key => {
+        const t = typeDetails[key];
+        const pct = getPercentage(scores[key]);
+        const row = document.createElement("div");
+        row.className = "bar-row";
+        row.innerHTML = `
+          <div class="bar-label"><span>${t.emoji} ${t.name}</span><span>${pct}%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="background:${t.color}"></div></div>`;
+        wrap.appendChild(row);
+        setTimeout(() => { row.querySelector(".bar-fill").style.width = pct + "%"; }, 80);
+      });
+    }
+
+    // ================================================================
+    // 9. RADAR CHART (Chart.js)
+    // ================================================================
+    function renderRadar(scores, pk, sk, isHybrid) {
+      const canvas = document.getElementById("radar-canvas");
+      if (radarChartInstance) { radarChartInstance.destroy(); }
+
+      const labels = TYPE_KEYS.map(k => typeDetails[k].name.replace("型", ""));
+      const data = TYPE_KEYS.map(k => getPercentage(scores[k]));
+      const mainColor = typeDetails[pk].color;
+
+      radarChartInstance = new Chart(canvas, {
+        type: "radar",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "バイアス傾向",
+            data: data,
+            backgroundColor: mainColor + "22",
+            borderColor: mainColor,
+            borderWidth: 2.5,
+            pointBackgroundColor: TYPE_KEYS.map(k => typeDetails[k].color),
+            pointBorderColor: "#fff",
+            pointBorderWidth: 1.5,
+            pointRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            r: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                stepSize: 25,
+                display: false
+              },
+              grid: { color: "rgba(26,26,46,0.06)" },
+              angleLines: { color: "rgba(26,26,46,0.08)" },
+              pointLabels: {
+                font: { family: "'Source Sans 3', sans-serif", size: 11, weight: "600" },
+                color: TYPE_KEYS.map(k => {
+                  if (k === pk) return typeDetails[pk].color;
+                  if (isHybrid && k === sk) return typeDetails[sk].color;
+                  return "#8B8B9E";
+                })
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ================================================================
+    // 10. MEMO & CHECKLIST (localStorage)
+    // ================================================================
+    const LS_CHECK = "biasdiag_checklist";
+    const LS_MEMO = "biasdiag_memo";
+
+    function initMemoChecklist(pk, sk) {
+      const saved = localStorage.getItem(LS_CHECK);
+      if (saved) {
+        dynamicChecklist = JSON.parse(saved);
+      } else {
+        dynamicChecklist = [{ text: typeDetails[pk].okAction, checked: false }];
+        if (sk) dynamicChecklist.push({ text: typeDetails[sk].okAction, checked: false });
+        saveChecklist();
+      }
+      renderChecklist();
+
+      const memo = localStorage.getItem(LS_MEMO) || "";
+      document.getElementById("memo-area").value = memo;
+      document.getElementById("print-memo").textContent = memo;
+    }
+
+    function renderChecklist() {
+      const wrap = document.getElementById("r-checklist");
+      wrap.innerHTML = "";
+      dynamicChecklist.forEach((item, i) => {
+        const label = document.createElement("label");
+        label.className = "check-item";
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = item.checked;
+        cb.addEventListener("change", () => { dynamicChecklist[i].checked = cb.checked; saveChecklist(); });
+        const span = document.createElement("span");
+        span.textContent = item.text;
+        label.appendChild(cb);
+        label.appendChild(span);
+        wrap.appendChild(label);
+      });
+    }
+
+    function saveChecklist() { localStorage.setItem(LS_CHECK, JSON.stringify(dynamicChecklist)); }
+
+    document.getElementById("btn-add").addEventListener("click", () => {
+      const inp = document.getElementById("input-add");
+      const txt = inp.value.trim();
+      if (txt) {
+        dynamicChecklist.push({ text: txt, checked: false });
+        inp.value = "";
+        saveChecklist();
+        renderChecklist();
+      }
+    });
+
+    document.getElementById("memo-area").addEventListener("input", e => {
+      localStorage.setItem(LS_MEMO, e.target.value);
+      document.getElementById("print-memo").textContent = e.target.value;
+    });
+
+    // ================================================================
+    // 11. COPY SERIFU
+    // ================================================================
+    document.getElementById("btn-copy").addEventListener("click", () => {
+      const text = document.getElementById("r-serifu").textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById("btn-copy");
+        btn.innerHTML = "✓";
+        setTimeout(() => {
+          btn.innerHTML = '<svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/></svg>';
+        }, 1500);
+      });
+    });
+
+    // ================================================================
+    // 12. PRINT / IMAGE DOWNLOAD / SHARE
+    // ================================================================
+    document.getElementById("btn-print").addEventListener("click", () => { window.print(); });
+
+    // Image Download
+    document.getElementById("btn-dl-img").addEventListener("click", () => {
+      const r = analyze();
+      const pt = typeDetails[r.pk], st = typeDetails[r.sk];
+      const canvas = document.createElement("canvas");
+      canvas.width = 640; canvas.height = 960;
+      const ctx = canvas.getContext("2d");
+
+      // Background
+      ctx.fillStyle = "#F7F8F6";
+      ctx.fillRect(0, 0, 640, 960);
+
+      // Top accent bar
+      ctx.fillStyle = pt.color;
+      ctx.fillRect(0, 0, 640, 6);
+
+      // Header area
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 6, 640, 200);
+      ctx.strokeStyle = "#E5E7EB";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(0, 6, 640, 200);
+
+      // Title
+      ctx.fillStyle = "#1F2937";
+      ctx.textAlign = "center";
+      ctx.font = "bold 22px 'Noto Serif JP', serif";
+      ctx.fillText("あなたが繰り返すミスのクセ診断", 320, 55);
+
+      // Type name
+      ctx.font = "bold 34px 'Noto Serif JP', serif";
+      ctx.fillStyle = pt.color;
+      const titleText = r.isHybrid ? `${pt.emoji}${pt.name} × ${st.emoji}${st.name}` : `${pt.emoji} ${pt.name}`;
+      ctx.fillText(titleText, 320, 115);
+
+      // Ratio
+      ctx.font = "600 16px 'Source Sans 3', sans-serif";
+      ctx.fillStyle = "#4B5563";
+      const ratioText = r.isHybrid
+        ? `${pt.name.replace("型","")} ${r.pRatio}% / ${st.name.replace("型","")} ${r.sRatio}%`
+        : `バイアス傾向度: ${getPercentage(r.scores[r.pk])}%`;
+      ctx.fillText(ratioText, 320, 155);
+
+      // Catchcopy
+      ctx.font = "italic 14px 'Noto Serif JP', serif";
+      ctx.fillStyle = "#4B5563";
+      ctx.fillText(pt.catchcopy, 320, 185);
+
+      // Misses block
+      ctx.fillStyle = "#FEF2F2";
+      roundRect(ctx, 32, 230, 576, 160, 4);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(239, 68, 68, 0.2)";
+      ctx.stroke();
+
+      ctx.fillStyle = "#EF4444";
+      ctx.textAlign = "left";
+      ctx.font = "bold 18px 'Noto Serif JP', serif";
+      ctx.fillText("⚠ 最も起こしやすいミス", 52, 265);
+
+      ctx.fillStyle = "#1F2937";
+      ctx.font = "500 15px 'Noto Serif JP', serif";
+      let my = 300;
+      const imgMisses = r.isHybrid ? [pt.misses[0], st.misses[0], pt.misses[1]] : pt.misses;
+      imgMisses.forEach(m => { ctx.fillText("— " + m, 52, my); my += 30; });
+
+      // OK Action block
+      ctx.fillStyle = "#F0FDF4";
+      roundRect(ctx, 32, 415, 576, 120, 4);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(34, 197, 94, 0.2)";
+      ctx.stroke();
+
+      ctx.fillStyle = "#22C55E";
+      ctx.font = "bold 18px 'Noto Serif JP', serif";
+      ctx.fillText("✅ 明日からできるOK行動", 52, 450);
+
+      ctx.fillStyle = "#1F2937";
+      ctx.font = "bold 16px 'Noto Serif JP', serif";
+      if (r.isHybrid) {
+        ctx.fillText("1. " + pt.okAction, 52, 485);
+        ctx.fillText("2. " + st.okAction, 52, 510);
+      } else {
+        ctx.fillText(pt.okAction, 52, 490);
+      }
+
+      // Footer
+      ctx.fillStyle = "#9CA3AF";
+      ctx.textAlign = "center";
+      ctx.font = "13px 'Source Sans 3', sans-serif";
+      ctx.fillText("薬剤師のミスのクセ診断 — @EarthKey", 320, 920);
+
+      // Accent bottom bar
+      ctx.fillStyle = pt.color;
+      ctx.fillRect(0, 954, 640, 6);
+
+      // Download
+      const link = document.createElement("a");
+      link.download = `ミスのクセ診断_${pt.name}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    });
+
+    // Share on X
+    document.getElementById("btn-share-x").addEventListener("click", () => {
+      const r = analyze();
+      const pt = typeDetails[r.pk], st = typeDetails[r.sk];
+      let text = "";
+      if (r.isHybrid) {
+        text = `【ミスのクセ診断】私のバイアスタイプは「${pt.name} × ${st.name}」でした！\n明日から「${pt.okAction}」を徹底して対策します。`;
+      } else {
+        text = `【ミスのクセ診断】私のバイアスタイプは「${pt.name}」でした！\n明日から「${pt.okAction}」を徹底します。`;
+      }
+      const hashtags = "薬剤師のミスのクセ診断,EarthKey";
+      const url = window.location.href;
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent(hashtags)}`, "_blank");
+    });
+
+    // Restart
+    document.getElementById("btn-restart").addEventListener("click", () => {
+      localStorage.removeItem(LS_CHECK);
+      localStorage.removeItem(LS_MEMO);
+      showScreen($intro);
+    });
+
+    // Helper: roundRect
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+  </script>
+</body>
+</html>
