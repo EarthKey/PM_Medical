@@ -454,6 +454,9 @@
     .illustration-container.hybrid .illustration-img {
       max-width: 48%;
     }
+    .illustration-container.composite .illustration-img {
+      max-width: 30%;
+    }
 
     /* --- Section 3: Reason --- */
     .reason-text {
@@ -1092,6 +1095,7 @@
     // 6. SCORING & ANALYSIS
     // ================================================================
     function analyze() {
+      // 1. Q1〜Q18の基本集計（Q19、Q20を除外）
       const scores = {
         pacesetter:    (answers[0] || 0) + (answers[1] || 0) + (answers[2] || 0),
         coach:         (answers[3] || 0) + (answers[4] || 0) + (answers[5] || 0),
@@ -1101,24 +1105,30 @@
         democratic:    (answers[15] || 0) + (answers[16] || 0) + (answers[17] || 0)
       };
 
-      // Q19 correction: if "かなり" or "やや", boost top type +1
-      if ((answers[18] || 0) >= 1) {
-        const topKey = TYPE_KEYS.slice().sort((a, b) => scores[b] - scores[a])[0];
-        scores[topKey] += 1;
-      }
-
       // Q20 awareness flag
       const isAwarenessLow = (answers[19] || 0) >= 1;
 
-      // Sort
-      const sorted = TYPE_KEYS.slice().sort((a, b) => scores[b] - scores[a]);
-      const pk = sorted[0], sk = sorted[1];
-      const ps = scores[pk], ss = scores[sk];
+      // 暫定ソートして上位3タイプの実力差を確認
+      let sorted = TYPE_KEYS.slice().sort((a, b) => scores[b] - scores[a]);
+      let pk = sorted[0], sk = sorted[1], tk = sorted[2];
+      let ps = scores[pk], ss = scores[sk], ts = scores[tk];
 
-      // Hybrid: diff <= 1
+      // 複合傾向型判定：1位と3位のスコア差が1以内なら複合傾向型
+      const isComposite = (ps - ts) <= 1;
+
+      // 2. Q19補正：複合傾向ではない場合のみ、最高タイプに+1する
+      if (!isComposite && (answers[18] || 0) >= 1) {
+        scores[pk] += 1;
+        // 補正後に再ソートして再取得
+        sorted = TYPE_KEYS.slice().sort((a, b) => scores[b] - scores[a]);
+        pk = sorted[0]; sk = sorted[1]; tk = sorted[2];
+        ps = scores[pk]; ss = scores[sk]; ts = scores[tk];
+      }
+
+      // Hybrid判定：1位と2位の差が1以内
       const isHybrid = (ps - ss) <= 1;
 
-      // Ratio (normalize to 0-12)
+      // Ratio (1位と2位の比率)
       const pn = ps + 6, sn = ss + 6, total = pn + sn;
       let pRatio = 50, sRatio = 50;
       if (total > 0) { pRatio = Math.round((pn / total) * 100); sRatio = 100 - pRatio; }
@@ -1126,14 +1136,14 @@
       // 低偏り判定 (最高スコアが0以下の場合)
       const isLowScore = ps <= 0;
 
-      return { pk, sk, isHybrid, pRatio, sRatio, scores, isAwarenessLow, isLowScore };
+      return { pk, sk, tk, isHybrid, isComposite, pRatio, sRatio, scores, isAwarenessLow, isLowScore };
     }
 
     // ================================================================
     // 7. RESULT RENDERING
     // ================================================================
     function renderResult(r) {
-      const pt = typeDetails[r.pk], st = typeDetails[r.sk];
+      const pt = typeDetails[r.pk], st = typeDetails[r.sk], tt = typeDetails[r.tk];
 
       // S1: Misses
       const missesUl = document.getElementById("r-misses");
@@ -1152,9 +1162,13 @@
         lowScoreNotice.innerHTML = "";
       }
 
-      let missList = [...pt.misses];
-      if (r.isHybrid) {
+      let missList = [];
+      if (r.isComposite) {
+        missList = [pt.misses[0], st.misses[0], tt.misses[0]];
+      } else if (r.isHybrid) {
         missList = [pt.misses[0], st.misses[0], pt.misses[1], st.misses[1], pt.misses[2], st.misses[2]];
+      } else {
+        missList = [...pt.misses];
       }
       missList.slice(0, r.isHybrid ? 4 : 3).forEach(m => {
         const li = document.createElement("li");
@@ -1167,20 +1181,34 @@
       const typeSection = document.getElementById("r-type-section");
       typeSection.style.borderBottom = `3px solid ${pt.color}`;
 
-      document.getElementById("r-emoji").textContent = r.isHybrid ? `${pt.emoji}  ×  ${st.emoji}` : pt.emoji;
-      document.getElementById("r-type-name").textContent = r.isHybrid ? `${pt.name} × ${st.name}` : pt.name;
-      document.getElementById("r-type-label").textContent = r.isHybrid ? `${pt.label} × ${st.label}` : pt.label;
-
-      if (r.isHybrid) {
-        document.getElementById("r-ratio").textContent = `${pt.name.replace("型","")} ${r.pRatio}% / ${st.name.replace("型","")} ${r.sRatio}%`;
+      if (r.isComposite) {
+        document.getElementById("r-emoji").textContent = "⚖️";
+        document.getElementById("r-type-name").textContent = "複合傾向型";
+        document.getElementById("r-type-label").textContent = "（複数バイアス混在・要セルフチェック）";
+        document.getElementById("r-ratio").textContent = `最も注意: ${pt.name.replace("型","")} / 次点: ${st.name.replace("型","")}, ${tt.name.replace("型","")}`;
+        document.getElementById("r-catchcopy").textContent = "「特定の傾向にとどまらず、状況に応じて様々なクセが出やすい状態です」";
       } else {
-        document.getElementById("r-ratio").textContent = `バイアス傾向度: ${getPercentage(r.scores[r.pk])}%`;
+        document.getElementById("r-emoji").textContent = r.isHybrid ? `${pt.emoji}  ×  ${st.emoji}` : pt.emoji;
+        document.getElementById("r-type-name").textContent = r.isHybrid ? `${pt.name} × ${st.name}` : pt.name;
+        document.getElementById("r-type-label").textContent = r.isHybrid ? `${pt.label} × ${st.label}` : pt.label;
+
+        if (r.isHybrid) {
+          document.getElementById("r-ratio").textContent = `${pt.name.replace("型","")} ${r.pRatio}% / ${st.name.replace("型","")} ${r.sRatio}%`;
+        } else {
+          document.getElementById("r-ratio").textContent = `バイアス傾向度: ${getPercentage(r.scores[r.pk])}%`;
+        }
+
+        document.getElementById("r-catchcopy").textContent = r.isHybrid ? `${pt.catchcopy} ／ ${st.catchcopy}` : pt.catchcopy;
       }
 
       // --- 準備できたイラスト画像を表示 ---
       const imgContainer = document.getElementById("r-illustration-container");
       imgContainer.innerHTML = "";
-      imgContainer.className = "illustration-container" + (r.isHybrid ? " hybrid" : "");
+      
+      let containerClass = "illustration-container";
+      if (r.isComposite) containerClass += " composite";
+      else if (r.isHybrid) containerClass += " hybrid";
+      imgContainer.className = containerClass;
       
       const addImg = (key) => {
         const img = document.createElement("img");
@@ -1191,15 +1219,18 @@
       };
 
       addImg(r.pk);
-      if (r.isHybrid) {
+      if (r.isComposite) {
+        addImg(r.sk);
+        addImg(r.tk);
+      } else if (r.isHybrid) {
         addImg(r.sk);
       }
 
-      document.getElementById("r-catchcopy").textContent = r.isHybrid ? `${pt.catchcopy} ／ ${st.catchcopy}` : pt.catchcopy;
-
       // S3: Reason
       const reasonEl = document.getElementById("r-reason");
-      if (r.isHybrid) {
+      if (r.isComposite) {
+        reasonEl.textContent = "あなたは特定の1タイプというより、複数のクセが場面によって出やすいタイプです。状況や忙しさに応じて、異なるバイアスによるズレが発生しやすいため、全体的なセルフチェックが必要です。";
+      } else if (r.isHybrid) {
         reasonEl.textContent = `${pt.name}のズレ【${pt.bias}】と、${st.name}のズレ【${st.bias}】が状況に応じて複合的に出現しやすい傾向があります。`;
       } else {
         reasonEl.textContent = pt.bias + "傾向があります。";
@@ -1211,7 +1242,9 @@
       renderRadar(r.scores, r.pk, r.sk, r.isHybrid);
 
       // S5: OK Action + Serifu
-      if (r.isHybrid) {
+      if (r.isComposite) {
+        document.getElementById("r-ok-action").innerHTML = `① ${pt.okAction}<br>② ${st.okAction}<br>③ ${tt.okAction}`;
+      } else if (r.isHybrid) {
         document.getElementById("r-ok-action").innerHTML = `① ${pt.okAction}<br>② ${st.okAction}`;
       } else {
         document.getElementById("r-ok-action").textContent = pt.okAction;
@@ -1220,7 +1253,7 @@
 
       // S6: Sub tendency (single only)
       const subEl = document.getElementById("r-sub-section");
-      if (r.isHybrid) {
+      if (r.isHybrid || r.isComposite) {
         subEl.style.display = "none";
       } else {
         subEl.style.display = "block";
@@ -1239,7 +1272,7 @@
       }
 
       // S8: Memo & Checklist
-      initMemoChecklist(r.pk, r.isHybrid ? r.sk : null);
+      initMemoChecklist(r.pk, r.isHybrid ? r.sk : null, r.isComposite ? [r.sk, r.tk] : null);
     }
 
     // ================================================================
@@ -1329,8 +1362,13 @@
     // ================================================================
     // 10. MEMO & CHECKLIST (localStorage)
     // ================================================================
-    function initMemoChecklist(pk, sk) {
-      const suffix = `${pk}${sk ? "_" + sk : ""}`;
+    function initMemoChecklist(pk, sk, compositeKeys) {
+      let suffix = pk;
+      if (compositeKeys) {
+        suffix += "_" + compositeKeys.join("_");
+      } else if (sk) {
+        suffix += "_" + sk;
+      }
       activeCheckKey = `biasdiag_checklist_${suffix}`;
       activeMemoKey = `biasdiag_memo_${suffix}`;
 
@@ -1339,7 +1377,13 @@
         dynamicChecklist = JSON.parse(saved);
       } else {
         dynamicChecklist = [{ text: typeDetails[pk].okAction, checked: false }];
-        if (sk) dynamicChecklist.push({ text: typeDetails[sk].okAction, checked: false });
+        if (compositeKeys) {
+          compositeKeys.forEach(k => {
+            dynamicChecklist.push({ text: typeDetails[k].okAction, checked: false });
+          });
+        } else if (sk) {
+          dynamicChecklist.push({ text: typeDetails[sk].okAction, checked: false });
+        }
         saveChecklist();
       }
       renderChecklist();
@@ -1413,7 +1457,7 @@
     // Image Download
     document.getElementById("btn-dl-img").addEventListener("click", () => {
       const r = analyze();
-      const pt = typeDetails[r.pk], st = typeDetails[r.sk];
+      const pt = typeDetails[r.pk], st = typeDetails[r.sk], tt = typeDetails[r.tk];
       const canvas = document.createElement("canvas");
       canvas.width = 640; canvas.height = 960;
       const ctx = canvas.getContext("2d");
@@ -1442,21 +1486,32 @@
       // Type name
       ctx.font = "bold 34px 'Noto Serif JP', serif";
       ctx.fillStyle = pt.color;
-      const titleText = r.isHybrid ? `${pt.emoji}${pt.name} × ${st.emoji}${st.name}` : `${pt.emoji} ${pt.name}`;
+      let titleText = "";
+      if (r.isComposite) {
+        titleText = "⚖️ 複合傾向型";
+      } else {
+        titleText = r.isHybrid ? `${pt.emoji}${pt.name} × ${st.emoji}${st.name}` : `${pt.emoji} ${pt.name}`;
+      }
       ctx.fillText(titleText, 320, 115);
 
       // Ratio
       ctx.font = "600 16px 'Source Sans 3', sans-serif";
       ctx.fillStyle = "#4B5563";
-      const ratioText = r.isHybrid
-        ? `${pt.name.replace("型","")} ${r.pRatio}% / ${st.name.replace("型","")} ${r.sRatio}%`
-        : `バイアス傾向度: ${getPercentage(r.scores[r.pk])}%`;
+      let ratioText = "";
+      if (r.isComposite) {
+        ratioText = `最も注意: ${pt.name.replace("型","")} / 次点: ${st.name.replace("型","")}, ${tt.name.replace("型","")}`;
+      } else {
+        ratioText = r.isHybrid
+          ? `${pt.name.replace("型","")} ${r.pRatio}% / ${st.name.replace("型","")} ${r.sRatio}%`
+          : `バイアス傾向度: ${getPercentage(r.scores[r.pk])}%`;
+      }
       ctx.fillText(ratioText, 320, 155);
 
       // Catchcopy
       ctx.font = "italic 14px 'Noto Serif JP', serif";
       ctx.fillStyle = "#4B5563";
-      ctx.fillText(pt.catchcopy, 320, 185);
+      const copyText = r.isComposite ? "「特定の傾向にとどまらず、状況に応じて様々なクセが出やすい状態です」" : pt.catchcopy;
+      ctx.fillText(copyText, 320, 185);
 
       // Misses block
       ctx.fillStyle = "#FEF2F2";
@@ -1473,7 +1528,14 @@
       ctx.fillStyle = "#1F2937";
       ctx.font = "500 15px 'Noto Serif JP', serif";
       let my = 300;
-      const imgMisses = r.isHybrid ? [pt.misses[0], st.misses[0], pt.misses[1]] : pt.misses;
+      let imgMisses = [];
+      if (r.isComposite) {
+        imgMisses = [pt.misses[0], st.misses[0], tt.misses[0]];
+      } else if (r.isHybrid) {
+        imgMisses = [pt.misses[0], st.misses[0], pt.misses[1]];
+      } else {
+        imgMisses = pt.misses;
+      }
       imgMisses.forEach(m => { ctx.fillText("— " + m, 52, my); my += 30; });
 
       // OK Action block
@@ -1489,7 +1551,10 @@
 
       ctx.fillStyle = "#1F2937";
       ctx.font = "bold 16px 'Noto Serif JP', serif";
-      if (r.isHybrid) {
+      if (r.isComposite) {
+        ctx.fillText("1. " + pt.okAction, 52, 485);
+        ctx.fillText("2. " + st.okAction, 52, 510);
+      } else if (r.isHybrid) {
         ctx.fillText("1. " + pt.okAction, 52, 485);
         ctx.fillText("2. " + st.okAction, 52, 510);
       } else {
@@ -1518,7 +1583,9 @@
       const r = analyze();
       const pt = typeDetails[r.pk], st = typeDetails[r.sk];
       let text = "";
-      if (r.isHybrid) {
+      if (r.isComposite) {
+        text = `【ミスのクセ診断】私のバイアスタイプは「複合傾向型」でした！\n状況に合わせて「${pt.okAction}」などの対策を意識します。`;
+      } else if (r.isHybrid) {
         text = `【ミスのクセ診断】私のバイアスタイプは「${pt.name} × ${st.name}」でした！\n明日から「${pt.okAction}」を徹底して対策します。`;
       } else {
         text = `【ミスのクセ診断】私のバイアスタイプは「${pt.name}」でした！\n明日から「${pt.okAction}」を徹底します。`;
