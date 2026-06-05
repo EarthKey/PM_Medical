@@ -283,6 +283,16 @@
       background: var(--primary);
     }
 
+    .opt-btn.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      font-weight: 700;
+    }
+    .opt-btn.selected::before {
+      border-color: var(--primary);
+      background: var(--primary);
+    }
+
     .btn-back {
       background: none;
       border: none;
@@ -781,6 +791,7 @@
       <div class="result-section misses-section">
         <p class="section-label">Assessment Result</p>
         <h2 class="misses-heading">⚠ あなたが最も起こしやすいミス</h2>
+        <div id="r-low-score-notice" style="display:none;"></div>
         <ul id="r-misses" class="misses-list"></ul>
       </div>
 
@@ -1006,6 +1017,8 @@
     let answers = new Array(questions.length).fill(null);
     let dynamicChecklist = [];
     let radarChartInstance = null;
+    let activeCheckKey = "";
+    let activeMemoKey = "";
 
     // DOM references
     const $intro   = document.getElementById("intro-screen");
@@ -1062,6 +1075,17 @@
       document.getElementById("progress-num").textContent = `質問 ${currentIdx + 1} / ${questions.length}`;
       document.getElementById("progress-pct").textContent = Math.round(pct) + "%";
       document.getElementById("btn-back").disabled = (currentIdx === 0);
+
+      // 回答済みの選択肢をハイライト
+      const savedAns = answers[currentIdx];
+      document.querySelectorAll(".opt-btn").forEach(btn => {
+        const val = parseInt(btn.dataset.value);
+        if (savedAns !== null && val === savedAns) {
+          btn.classList.add("selected");
+        } else {
+          btn.classList.remove("selected");
+        }
+      });
     }
 
     // ================================================================
@@ -1079,7 +1103,7 @@
 
       // Q19 correction: if "かなり" or "やや", boost top type +1
       if ((answers[18] || 0) >= 1) {
-        const topKey = TYPE_KEYS.reduce((a, b) => scores[a] > scores[b] ? a : b);
+        const topKey = TYPE_KEYS.slice().sort((a, b) => scores[b] - scores[a])[0];
         scores[topKey] += 1;
       }
 
@@ -1099,7 +1123,10 @@
       let pRatio = 50, sRatio = 50;
       if (total > 0) { pRatio = Math.round((pn / total) * 100); sRatio = 100 - pRatio; }
 
-      return { pk, sk, isHybrid, pRatio, sRatio, scores, isAwarenessLow };
+      // 低偏り判定 (最高スコアが0以下の場合)
+      const isLowScore = ps <= 0;
+
+      return { pk, sk, isHybrid, pRatio, sRatio, scores, isAwarenessLow, isLowScore };
     }
 
     // ================================================================
@@ -1110,7 +1137,21 @@
 
       // S1: Misses
       const missesUl = document.getElementById("r-misses");
+      const lowScoreNotice = document.getElementById("r-low-score-notice");
       missesUl.innerHTML = "";
+      
+      if (r.isLowScore) {
+        lowScoreNotice.style.display = "block";
+        lowScoreNotice.style.fontSize = "0.88rem";
+        lowScoreNotice.style.color = "var(--text-sub)";
+        lowScoreNotice.style.lineHeight = "1.7";
+        lowScoreNotice.style.marginBottom = "1rem";
+        lowScoreNotice.innerHTML = "💡 <strong>全体のバイアススコアが低めです：</strong>現在、特定のバイアスによる暴走や目立ったミスのクセは少なめです。現場の状況を冷静に観察できているバランスの取れた状態と言えます。以下は、相対的にやや高めだった傾向から算出した『今後の予防ポイント』です。";
+      } else {
+        lowScoreNotice.style.display = "none";
+        lowScoreNotice.innerHTML = "";
+      }
+
       let missList = [...pt.misses];
       if (r.isHybrid) {
         missList = [pt.misses[0], st.misses[0], pt.misses[1], st.misses[1], pt.misses[2], st.misses[2]];
@@ -1225,6 +1266,16 @@
     // ================================================================
     function renderRadar(scores, pk, sk, isHybrid) {
       const canvas = document.getElementById("radar-canvas");
+      
+      // Chart.js が読み込めなかった場合のフォールバック
+      if (typeof Chart === 'undefined') {
+        const wrap = canvas.parentNode;
+        wrap.innerHTML = `<div style="text-align:center; padding:1.5rem; font-size:0.82rem; color:var(--text-muted); border:1px dashed var(--border); margin-top:1rem;">
+          ⚠️ 院内ネットワークのセキュリティ制限により、詳細レーダーチャートの表示がブロックされています（CSS簡易グラフは上記で確認可能です）。
+        </div>`;
+        return;
+      }
+
       if (radarChartInstance) { radarChartInstance.destroy(); }
 
       const labels = TYPE_KEYS.map(k => typeDetails[k].name.replace("型", ""));
@@ -1278,11 +1329,12 @@
     // ================================================================
     // 10. MEMO & CHECKLIST (localStorage)
     // ================================================================
-    const LS_CHECK = "biasdiag_checklist";
-    const LS_MEMO = "biasdiag_memo";
-
     function initMemoChecklist(pk, sk) {
-      const saved = localStorage.getItem(LS_CHECK);
+      const suffix = `${pk}${sk ? "_" + sk : ""}`;
+      activeCheckKey = `biasdiag_checklist_${suffix}`;
+      activeMemoKey = `biasdiag_memo_${suffix}`;
+
+      const saved = localStorage.getItem(activeCheckKey);
       if (saved) {
         dynamicChecklist = JSON.parse(saved);
       } else {
@@ -1292,7 +1344,7 @@
       }
       renderChecklist();
 
-      const memo = localStorage.getItem(LS_MEMO) || "";
+      const memo = localStorage.getItem(activeMemoKey) || "";
       document.getElementById("memo-area").value = memo;
       document.getElementById("print-memo").textContent = memo;
     }
@@ -1315,7 +1367,11 @@
       });
     }
 
-    function saveChecklist() { localStorage.setItem(LS_CHECK, JSON.stringify(dynamicChecklist)); }
+    function saveChecklist() {
+      if (activeCheckKey) {
+        localStorage.setItem(activeCheckKey, JSON.stringify(dynamicChecklist));
+      }
+    }
 
     document.getElementById("btn-add").addEventListener("click", () => {
       const inp = document.getElementById("input-add");
@@ -1329,7 +1385,9 @@
     });
 
     document.getElementById("memo-area").addEventListener("input", e => {
-      localStorage.setItem(LS_MEMO, e.target.value);
+      if (activeMemoKey) {
+        localStorage.setItem(activeMemoKey, e.target.value);
+      }
       document.getElementById("print-memo").textContent = e.target.value;
     });
 
@@ -1472,8 +1530,8 @@
 
     // Restart
     document.getElementById("btn-restart").addEventListener("click", () => {
-      localStorage.removeItem(LS_CHECK);
-      localStorage.removeItem(LS_MEMO);
+      if (activeCheckKey) localStorage.removeItem(activeCheckKey);
+      if (activeMemoKey) localStorage.removeItem(activeMemoKey);
       showScreen($intro);
     });
 
