@@ -440,16 +440,29 @@
 
     .illustration-container {
       display: flex;
+      flex-wrap: wrap;
       justify-content: center;
       gap: 1rem;
       margin: 1.5rem 0;
     }
+    .illustration-subnote {
+      flex-basis: 100%;
+    }
     .illustration-img {
       max-width: 100%;
+      max-height: 400px;
+      width: auto;
       height: auto;
+      object-fit: contain;
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       box-shadow: var(--shadow-card);
+      transition: box-shadow 0.3s ease, filter 0.3s ease, transform 0.25s ease;
+    }
+    .illustration-img:hover {
+      box-shadow: 0 0 18px 6px rgba(107, 168, 169, 0.55), 0 0 40px 12px rgba(107, 168, 169, 0.25);
+      filter: brightness(1.08);
+      transform: scale(1.02);
     }
     .illustration-container.hybrid .illustration-img {
       max-width: 48%;
@@ -704,12 +717,54 @@
        RESPONSIVE
        ========================================================================== */
     @media (max-width: 560px) {
+      body { padding: 0.75rem 0.5rem; }
       .screen { padding: 1.75rem 1.25rem; }
-      .result-section { padding: 1.5rem 1.25rem; }
-      .intro-title { font-size: 1.6rem; }
-      .type-name { font-size: 1.4rem; }
+      .result-section { padding: 1.5rem 1rem; }
+      .intro-title { font-size: 1.5rem; }
+      .intro-subtitle { font-size: 0.9rem; }
+      .intro-lead { font-size: 0.88rem; }
+      .intro-meta { flex-wrap: wrap; gap: 0.5rem 1rem; }
+      .type-name { font-size: 1.35rem; }
+      .type-section { padding: 2rem 1rem; }
+      .type-ratio-badge { font-size: 0.7rem; padding: 0.3rem 0.75rem; }
+      .type-catchcopy { font-size: 0.88rem; }
       .q-number { font-size: 2.5rem; right: 1.25rem; top: 4.5rem; }
-      .sub-section { margin: 0 1.25rem; }
+      .q-text { font-size: 0.95rem; }
+      .opt-btn { font-size: 0.85rem; padding: 0.75rem 0.85rem; padding-left: 2.25rem; }
+      .sub-section { margin: 0 0.5rem; padding: 0.85rem 1rem; }
+      .sub-text { font-size: 0.82rem; }
+      .misses-heading { font-size: 1rem; }
+      .misses-item { font-size: 0.88rem; }
+      .reason-text { font-size: 0.88rem; line-height: 1.85; padding-left: 1rem; }
+      .bar-label { font-size: 0.72rem; }
+      .chart-wrap canvas { max-width: 280px; max-height: 240px; }
+      .ok-heading { font-size: 1rem; }
+      .ok-action { font-size: 0.95rem; }
+      .serifu-text { font-size: 0.9rem; padding-right: 2.5rem; }
+      .awareness-section { padding: 1.25rem 1rem; }
+      .memo-heading { font-size: 1rem; }
+      .check-item { font-size: 0.82rem; }
+      .add-row { flex-wrap: wrap; }
+      .input-action { min-width: 0; width: 100%; }
+      .btn-add { width: 100%; }
+      .memo-textarea { font-size: 0.82rem; }
+      .btn-action { font-size: 0.82rem; padding: 0.75rem; }
+      .study-guide { font-size: 0.72rem; }
+      .illustration-img { max-height: 300px; }
+      .illustration-container.composite .illustration-img { max-width: 80%; }
+      .illustration-container.hybrid .illustration-img { max-width: 80%; }
+    }
+
+    @media (max-width: 380px) {
+      .screen { padding: 1.25rem 1rem; }
+      .result-section { padding: 1.25rem 0.85rem; }
+      .intro-title { font-size: 1.3rem; }
+      .type-name { font-size: 1.2rem; }
+      .q-text { font-size: 0.9rem; }
+      .misses-item { font-size: 0.82rem; }
+      .ok-action { font-size: 0.88rem; }
+      .serifu-text { font-size: 0.85rem; }
+      .chart-wrap canvas { max-width: 240px; max-height: 210px; }
     }
 
     /* ==========================================================================
@@ -742,6 +797,7 @@
     .lightbox-content {
       max-width: 95%;
       max-height: 85%;
+      object-fit: contain;
       border-radius: var(--radius-md);
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
       animation: zoomIn 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -1280,7 +1336,7 @@
 
       addImg(r.pk);
 
-      // 副傾向テキストの表示
+      // 副傾向テキストの表示（複合・ハイブリッドのみ）
       if (r.isComposite) {
         const subNote = document.createElement("p");
         subNote.className = "illustration-subnote";
@@ -1288,7 +1344,7 @@
         subNote.style.color = "var(--text-sub)";
         subNote.style.marginTop = "0.5rem";
         subNote.style.textAlign = "center";
-        subNote.innerHTML = `🔍 <strong>画像タップで拡大表示します</strong><br>※副傾向として「${st.name}」「${tt.name}」の特徴も場面によって現れやすい傾向があります。`;
+        subNote.innerHTML = `※副傾向として「${st.name}」「${tt.name}」の特徴も場面によって現れやすい傾向があります。`;
         imgContainer.appendChild(subNote);
       } else if (r.isHybrid) {
         const subNote = document.createElement("p");
@@ -1297,16 +1353,7 @@
         subNote.style.color = "var(--text-sub)";
         subNote.style.marginTop = "0.5rem";
         subNote.style.textAlign = "center";
-        subNote.innerHTML = `🔍 <strong>画像タップで拡大表示します</strong><br>※副傾向として「${st.name}」の特徴も場面によって現れやすい傾向があります。`;
-        imgContainer.appendChild(subNote);
-      } else {
-        const subNote = document.createElement("p");
-        subNote.className = "illustration-subnote";
-        subNote.style.fontSize = "0.78rem";
-        subNote.style.color = "var(--text-muted)";
-        subNote.style.marginTop = "0.5rem";
-        subNote.style.textAlign = "center";
-        subNote.textContent = "🔍 画像タップで拡大表示します";
+        subNote.innerHTML = `※副傾向として「${st.name}」の特徴も場面によって現れやすい傾向があります。`;
         imgContainer.appendChild(subNote);
       }
 
