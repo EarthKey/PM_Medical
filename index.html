@@ -5,14 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>薬剤師のミスのクセ診断 | 調剤・監査・業務バイアス判定</title>
   <meta name="description" content="薬剤師が良かれと思ってやってしまう「強みの暴走」による思考バイアスを、20問の診断で可視化。明日からの行動変容につなげる教育ツール。">
+  <meta name="author" content="EarthKey">
+  <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#2F6F6D">
+  <link rel="canonical" href="https://pm-medical.vercel.app/">
+
+  <!-- Security headers (meta-level fallback; prefer server-side headers when available) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <!-- OGP / Twitter Card -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="薬剤師のミスのクセ診断">
+  <meta property="og:description" content="20問で「強みの暴走」によるバイアスを可視化。明日からの1つを変える、薬剤師のための教育ツール。">
+  <meta property="og:image" content="https://pm-medical.vercel.app/images/ogp.png">
+  <meta property="og:site_name" content="EarthKey">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:creator" content="@EarthKey">
+  <meta name="twitter:title" content="薬剤師のミスのクセ診断">
+  <meta name="twitter:description" content="20問で「強みの暴走」によるバイアスを可視化。明日からの1つを変える、薬剤師のための教育ツール。">
+  <meta name="twitter:image" content="https://pm-medical.vercel.app/images/ogp.png">
+
+  <!-- Favicon (SVGデータURIで簡易設定。差し替え可) -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%232F6F6D'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle' fill='%23fff' font-family='serif' font-weight='900'%3EP%3C/text%3E%3C/svg%3E">
 
   <!-- Google Fonts: Playfair Display + Noto Serif JP + Source Sans 3 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Noto+Serif+JP:wght@400;500;700;900&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <!-- Chart.js CDN (SRIロック / 改ざん防止) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"
+          integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC"
+          crossorigin="anonymous"
+          defer></script>
 
   <style>
     /* ==========================================================================
@@ -39,7 +65,7 @@
       --bg-warm: #ECF2F2;
       --text-main: var(--text);
       --text-sub: #4B5563;
-      --text-muted: #9CA3AF;
+      --text-muted: #6B7280;
       --primary-dark: #225150;
       --primary-light: rgba(47, 111, 109, 0.08);
       --border: #E5E7EB;
@@ -70,6 +96,22 @@
        Reset & Base
        ========================================================================== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* キーボードフォーカスの可視化（マウス操作には影響しない） */
+    :focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    /* prefers-reduced-motion: モーションを最小限に */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
 
     body {
       font-family: var(--font-body);
@@ -171,6 +213,52 @@
       border-top: 1px solid var(--border);
     }
     .intro-meta span { display: flex; align-items: center; gap: 0.3rem; }
+
+    .intro-disclaimer {
+      margin-top: 1.25rem;
+      padding: 0.85rem 1rem;
+      background: rgba(47, 111, 109, 0.06);
+      border-left: 3px solid var(--primary);
+      font-family: var(--font-sans);
+      font-size: 0.72rem;
+      line-height: 1.7;
+      color: var(--text-sub);
+    }
+    .intro-disclaimer strong { color: var(--primary-dark); font-weight: 700; }
+
+    /* ==========================================================================
+       Site Footer (legal links, attribution)
+       ========================================================================== */
+    .site-footer {
+      width: 100%;
+      max-width: var(--max-width);
+      margin-top: 1.5rem;
+      padding: 1.25rem 1rem 1rem;
+      font-family: var(--font-sans);
+      font-size: 0.72rem;
+      color: var(--text-sub);
+      line-height: 1.7;
+      text-align: center;
+    }
+    .site-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .site-footer a:hover { border-bottom-color: var(--primary); }
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .footer-attribution {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
 
     .btn-primary {
       display: block;
@@ -438,17 +526,83 @@
       line-height: 1.7;
     }
 
+    .type-eyebrow-label {
+      font-family: var(--font-sans);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .sub-tendency-block {
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px dashed var(--border);
+    }
+    .sub-tendency-block .sub-eyebrow {
+      font-family: var(--font-sans);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+    .sub-tendency-block .sub-display {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.4;
+    }
+    .sub-tendency-block .sub-display .sub-emoji {
+      font-size: 1.4rem;
+      margin-right: 0.25rem;
+    }
+
+    /* Composed reason (主×副 narrative for hybrid/composite) */
+    .reason-text.composed { padding-left: 0; border-left: none; }
+    .reason-text.composed > * { border-left: 3px solid var(--primary); padding-left: 1.25rem; }
+    .reason-text.composed p { margin-bottom: 0.85rem; }
+    .reason-text.composed p:last-child { margin-bottom: 0; }
+    .reason-text.composed ul {
+      list-style: none;
+      margin: 0.5rem 0 0.85rem;
+      padding-left: 1.25rem;
+    }
+    .reason-text.composed ul li {
+      position: relative;
+      padding-left: 1.1rem;
+      margin-bottom: 0.4rem;
+    }
+    .reason-text.composed ul li::before {
+      content: "・";
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .reason-text.composed .closer {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
     .illustration-container {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1rem;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
       margin: 1.5rem 0;
     }
     .illustration-subnote {
-      flex-basis: 100%;
+      width: 100%;
+      text-align: center;
     }
     .illustration-img {
+      display: block;
       max-width: 100%;
       max-height: 400px;
       width: auto;
@@ -463,12 +617,6 @@
       box-shadow: 0 0 18px 6px rgba(107, 168, 169, 0.55), 0 0 40px 12px rgba(107, 168, 169, 0.25);
       filter: brightness(1.08);
       transform: scale(1.02);
-    }
-    .illustration-container.hybrid .illustration-img {
-      max-width: 48%;
-    }
-    .illustration-container.composite .illustration-img {
-      max-width: 30%;
     }
 
     /* --- Section 3: Reason --- */
@@ -751,8 +899,6 @@
       .btn-action { font-size: 0.82rem; padding: 0.75rem; }
       .study-guide { font-size: 0.72rem; }
       .illustration-img { max-height: 300px; }
-      .illustration-container.composite .illustration-img { max-width: 80%; }
-      .illustration-container.hybrid .illustration-img { max-width: 80%; }
     }
 
     @media (max-width: 380px) {
@@ -810,16 +956,27 @@
       position: absolute;
       top: 1.5rem;
       right: 1.5rem;
+      background: transparent;
+      border: 2px solid rgba(255,255,255,0.4);
       color: #fff;
-      font-size: 2.5rem;
+      font-size: 2rem;
       font-weight: bold;
       cursor: pointer;
       line-height: 1;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
       transition: var(--transition);
       z-index: 2001;
     }
-    .lightbox-close:hover {
+    .lightbox-close:hover,
+    .lightbox-close:focus-visible {
       color: var(--secondary);
+      border-color: var(--secondary);
+      outline: none;
     }
     .lightbox-caption {
       margin-top: 1rem;
@@ -838,7 +995,7 @@
     <!-- ================================================================
          INTRO SCREEN
          ================================================================ -->
-    <div id="intro-screen" class="screen active">
+    <div id="intro-screen" class="screen active" tabindex="-1">
       <p class="intro-eyebrow">Pharmacist Bias Assessment</p>
       <h1 class="intro-title">あなたが繰り返す<br>ミスのクセ診断</h1>
       <p class="intro-subtitle">— 調剤・監査・現場業務編 —</p>
@@ -861,28 +1018,32 @@
       </div>
 
       <button id="btn-start" class="btn-primary">診断を開始する</button>
+
+      <p class="intro-disclaimer">
+        ※本診断は薬剤師の業務における思考傾向の自己点検を目的とした<strong>教育ツール</strong>であり、医療判断・診断・治療効果を保証するものではありません。回答内容・診断結果は端末内（localStorage）にのみ保存され、外部送信されません。
+      </p>
     </div>
 
     <!-- ================================================================
          QUIZ SCREEN
          ================================================================ -->
-    <div id="quiz-screen" class="screen">
+    <div id="quiz-screen" class="screen" tabindex="-1">
       <div class="quiz-progress">
-        <div class="progress-track">
+        <div class="progress-track" role="progressbar" id="progress-bar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="診断の進捗">
           <div id="progress-fill" class="progress-fill"></div>
         </div>
         <div class="progress-info">
           <span id="progress-num">質問 1 / 20</span>
-          <span id="progress-pct">0%</span>
+          <span id="progress-pct" aria-hidden="true">0%</span>
         </div>
       </div>
 
       <div class="q-card">
-        <span id="q-number" class="q-number">01</span>
-        <p id="q-text" class="q-text"></p>
+        <span id="q-number" class="q-number" aria-hidden="true">01</span>
+        <p id="q-text" class="q-text" aria-live="polite"></p>
       </div>
 
-      <div class="options">
+      <div class="options" role="group" aria-label="回答の選択肢">
         <button class="opt-btn" data-value="2">かなり当てはまる</button>
         <button class="opt-btn" data-value="1">やや当てはまる</button>
         <button class="opt-btn" data-value="0">どちらとも言えない</button>
@@ -896,9 +1057,9 @@
     <!-- ================================================================
          LOADING SCREEN
          ================================================================ -->
-    <div id="loading-screen" class="screen">
-      <div class="loading-wrap">
-        <div class="loading-bar"><div class="loading-bar-inner"></div></div>
+    <div id="loading-screen" class="screen" tabindex="-1" aria-busy="true">
+      <div class="loading-wrap" role="status" aria-live="polite">
+        <div class="loading-bar" aria-hidden="true"><div class="loading-bar-inner"></div></div>
         <p class="loading-text">あなたの無意識のクセを分析中…</p>
       </div>
     </div>
@@ -906,7 +1067,7 @@
     <!-- ================================================================
          RESULT SCREEN
          ================================================================ -->
-    <div id="result-screen" class="screen result-screen">
+    <div id="result-screen" class="screen result-screen" tabindex="-1">
 
       <!-- S1: Misses -->
       <div class="result-section misses-section">
@@ -918,10 +1079,12 @@
 
       <!-- S2: Type Header -->
       <div id="r-type-section" class="result-section type-section">
+        <p id="r-type-eyebrow" class="type-eyebrow-label" style="display:none;">あなたのタイプ</p>
         <span id="r-emoji" class="type-emoji"></span>
         <h2 id="r-type-name" class="type-name"></h2>
         <p id="r-type-label" class="type-label"></p>
         <div id="r-ratio" class="type-ratio-badge"></div>
+        <div id="r-sub-tendency-block" class="sub-tendency-block" style="display:none;"></div>
         <div id="r-illustration-container" class="illustration-container"></div>
         <p id="r-catchcopy" class="type-catchcopy"></p>
       </div>
@@ -1000,6 +1163,22 @@
   </div><!-- /app -->
 
   <!-- ================================================================
+       SITE FOOTER (legal & attribution)
+       ================================================================ -->
+  <footer class="site-footer">
+    <nav class="footer-links" aria-label="サイト情報">
+      <a href="terms.html">利用規約</a>
+      <a href="privacy.html">プライバシーポリシー</a>
+      <a href="https://x.com/EarthKey" rel="noopener noreferrer" target="_blank">お問い合わせ（𝕏）</a>
+    </nav>
+    <p>本診断は教育目的の自己点検ツールです。医療判断・診断行為ではありません。</p>
+    <p class="footer-attribution">
+      理論ベース：三隅二不二「PM理論」／ Daniel Goleman「Leadership That Gets Results」（HBR, 2000）<br>
+      © 2026 EarthKey. All rights reserved.
+    </p>
+  </footer>
+
+  <!-- ================================================================
        JAVASCRIPT
        ================================================================ -->
   <script>
@@ -1046,7 +1225,10 @@
         bias: "正しく伝えようとするあまり、患者の理解や反応を待たずに説明を進めてしまう",
         okAction: "1つ説明したら必ず理解確認を入れる",
         serifu: "「ここまでで、わかりにくいところはありませんか？」",
-        catchcopy: "「説明しているだけで、伝わっていないかもしれません」"
+        catchcopy: "「説明しているだけで、伝わっていないかもしれません」",
+        mainComment: "必要な情報を整理し、現場を前に進める力があります。",
+        subComment: "説明を最後までやり切ろうとする傾向も出やすいです。",
+        riskComment: "相手の理解確認が後回しになり、伝わったかを確かめないまま次へ進みやすくなります。"
       },
       coach: {
         name: "コーチ型",
@@ -1061,7 +1243,10 @@
         bias: "相手に任せることを優先しすぎて、必要な指導や介入をしないまま進めてしまう",
         okAction: "説明の最後に、必ず1つだけ自分の意見を伝える",
         serifu: "「私はこうした方がいいと思いますが、どう思いますか？」",
-        catchcopy: "「何も言わないのも'放置'です」"
+        catchcopy: "「何も言わないのも'放置'です」",
+        mainComment: "相手の力を信じ、考える余白を残せる力があります。",
+        subComment: "本人の気づきを尊重し、あえて見守る傾向も出やすいです。",
+        riskComment: "介入のタイミングを逃し、ミスや誤理解に気づいても声をかけ損ねやすくなります。"
       },
       authoritative: {
         name: "強制型",
@@ -1076,7 +1261,10 @@
         bias: "自分の成功体験や考えを優先し、相手の背景を十分に確認せずに結論を出してしまう",
         okAction: "最初の30秒は聞き役になる",
         serifu: "「まず、どう考えているか教えてください」",
-        catchcopy: "あなたの「正論」が、相手の口を閉ざしているかもしれません"
+        catchcopy: "あなたの「正論」が、相手の口を閉ざしているかもしれません",
+        mainComment: "経験から必要な判断を早く組み立てる力があります。",
+        subComment: "自分の中で答えを早く固めたい傾向も出やすいです。",
+        riskComment: "相手の背景を聞ききる前に結論へ寄り、隠れたリスクを見落としやすくなります。"
       },
       affiliative: {
         name: "関係重視型",
@@ -1091,7 +1279,10 @@
         bias: "患者さんとの「良い関係」や「場の空気」を優先するあまり、副作用のリスク指摘や生活習慣の改善など、耳の痛い指導を避けてしまう",
         okAction: "指導の最後に、リスクや守ってほしいことを1点だけはっきり伝える",
         serifu: "「〇〇さんの健康のために、これだけは約束してください」",
-        catchcopy: "あなたの「優しさ」が、リスクを見逃しているかもしれません"
+        catchcopy: "あなたの「優しさ」が、リスクを見逃しているかもしれません",
+        mainComment: "相手が安心して話せる空気を作る力があります。",
+        subComment: "場の空気や関係を壊したくない傾向も出やすいです。",
+        riskComment: "耳の痛い指摘を後回しにし、必要なリスク説明や生活改善の提案を控えやすくなります。"
       },
       visionary: {
         name: "先見型",
@@ -1106,7 +1297,10 @@
         bias: "「治療の成功」や「将来の健康」といった大きな目標ばかりを語り、患者さんが抱える「今日のしんどさ」や「目の前の副作用」に目が向かない",
         okAction: "まず相手が口にした「今のしんどさ」を復唱して受け止める",
         serifu: "「今、すごくしんどい状況なんですね。まずはそこから対策を考えましょう」",
-        catchcopy: "明るい未来を語る前に、今日のしんどさに目を向けてください"
+        catchcopy: "明るい未来を語る前に、今日のしんどさに目を向けてください",
+        mainComment: "治療や健康の先を見通し、将来像から逆算して提案する力があります。",
+        subComment: "治療の意義や将来像を優先して語りたくなる傾向も出やすいです。",
+        riskComment: "今日のしんどさや目の前の副作用への受け止めが薄くなり、患者の現在地から会話が離れやすくなります。"
       },
       democratic: {
         name: "民主型",
@@ -1121,7 +1315,10 @@
         bias: "患者さんの自己決定を尊重しようとするあまり、情報や選択肢を並べるだけで、専門家としての方向性や推奨を提示せず、相手を迷わせてしまう",
         okAction: "選択肢を提示した上で、「プロとしての私のおすすめ」を1つ添える",
         serifu: "「選択肢はAとBがありますが、〇〇さんの生活ならAが良いと私は思います。どうでしょうか？」",
-        catchcopy: "「どうしたいですか？」は、時に不親切な丸投げになります"
+        catchcopy: "「どうしたいですか？」は、時に不親切な丸投げになります",
+        mainComment: "相手の自己決定を尊重し、選択肢を丁寧に整理する力があります。",
+        subComment: "最終判断を相手に委ねたい傾向も出やすいです。",
+        riskComment: "専門家としての推奨を添え忘れ、選択肢を渡すだけで相手を迷わせやすくなります。"
       }
     };
 
@@ -1141,6 +1338,19 @@
     let activeCheckKey = "";
     let activeMemoKey = "";
 
+    // localStorage 安全アクセス（プライベートブラウジング等での失敗を吸収）
+    const safeStorage = {
+      getItem(k) {
+        try { return localStorage.getItem(k); } catch (e) { return null; }
+      },
+      setItem(k, v) {
+        try { localStorage.setItem(k, v); return true; } catch (e) { return false; }
+      },
+      removeItem(k) {
+        try { localStorage.removeItem(k); } catch (e) { /* ignore */ }
+      }
+    };
+
     // DOM references
     const $intro   = document.getElementById("intro-screen");
     const $quiz    = document.getElementById("quiz-screen");
@@ -1153,6 +1363,11 @@
     function showScreen(el) {
       [$intro, $quiz, $loading, $result].forEach(s => s.classList.remove("active"));
       el.classList.add("active");
+      // フォーカスを新しい画面へ移す（スクリーンリーダー利用者の迷子防止）
+      try {
+        el.focus({ preventScroll: false });
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (e) { /* old browsers */ }
     }
 
     // ================================================================
@@ -1195,17 +1410,18 @@
       document.getElementById("progress-fill").style.width = pct + "%";
       document.getElementById("progress-num").textContent = `質問 ${currentIdx + 1} / ${questions.length}`;
       document.getElementById("progress-pct").textContent = Math.round(pct) + "%";
+      const progressBar = document.getElementById("progress-bar");
+      progressBar.setAttribute("aria-valuenow", Math.round(pct));
+      progressBar.setAttribute("aria-valuetext", `質問 ${currentIdx + 1} / ${questions.length}`);
       document.getElementById("btn-back").disabled = (currentIdx === 0);
 
-      // 回答済みの選択肢をハイライト
+      // 回答済みの選択肢をハイライト + aria-pressed
       const savedAns = answers[currentIdx];
       document.querySelectorAll(".opt-btn").forEach(btn => {
         const val = parseInt(btn.dataset.value);
-        if (savedAns !== null && val === savedAns) {
-          btn.classList.add("selected");
-        } else {
-          btn.classList.remove("selected");
-        }
+        const isSelected = (savedAns !== null && val === savedAns);
+        btn.classList.toggle("selected", isSelected);
+        btn.setAttribute("aria-pressed", isSelected ? "true" : "false");
       });
     }
 
@@ -1297,26 +1513,66 @@
 
       // S2: Type
       const typeSection = document.getElementById("r-type-section");
-      typeSection.style.borderBottom = `3px solid ${pt.color}`;
+      // 複合傾向型は中立色（プライマリ）で。それ以外は主タイプ色で印象付け
+      typeSection.style.borderBottom = `3px solid ${r.isComposite ? 'var(--primary)' : pt.color}`;
+
+      const eyebrowEl = document.getElementById("r-type-eyebrow");
+      const emojiEl = document.getElementById("r-emoji");
+      const nameEl = document.getElementById("r-type-name");
+      const labelEl = document.getElementById("r-type-label");
+      const ratioEl = document.getElementById("r-ratio");
+      const subBlockEl = document.getElementById("r-sub-tendency-block");
+      const catchcopyEl = document.getElementById("r-catchcopy");
 
       if (r.isComposite) {
-        document.getElementById("r-emoji").textContent = "⚖️";
-        document.getElementById("r-type-name").textContent = "複合傾向型";
-        document.getElementById("r-type-label").textContent = "（複数バイアス混在・要セルフチェック）";
-        document.getElementById("r-ratio").textContent = `最も注意: ${pt.name.replace("型","")} / 次点: ${st.name.replace("型","")}, ${tt.name.replace("型","")}`;
-        document.getElementById("r-catchcopy").textContent = "「特定の傾向にとどまらず、状況に応じて様々なクセが出やすい状態です」";
+        // 複合傾向型：⚖️ 複合傾向型 として表示し、上位3タイプを副傾向に並べる
+        emojiEl.textContent = "⚖️";
+        nameEl.textContent = "複合傾向型";
+        eyebrowEl.style.display = "block";
+        eyebrowEl.textContent = "あなたのタイプ";
+        labelEl.style.display = "none";
+        ratioEl.style.display = "none";
+        catchcopyEl.style.display = "none";
+
+        subBlockEl.style.display = "block";
+        subBlockEl.innerHTML = `
+          <span class="sub-eyebrow">特に出やすい3傾向</span>
+          <div class="sub-display">
+            <span class="sub-emoji">${pt.emoji}</span>${pt.name}
+            ／
+            <span class="sub-emoji">${st.emoji}</span>${st.name}
+            ／
+            <span class="sub-emoji">${tt.emoji}</span>${tt.name}
+          </div>`;
+      } else if (r.isHybrid) {
+        // ハイブリッド・単一では主タイプの emoji/name を表示
+        emojiEl.textContent = pt.emoji;
+        nameEl.textContent = pt.name;
+        // ハイブリッド：主＋副を構造化表示
+        eyebrowEl.style.display = "block";
+        eyebrowEl.textContent = "あなたのタイプ";
+        labelEl.style.display = "none";
+        ratioEl.style.display = "";
+        ratioEl.textContent = `${pt.name.replace("型","")} ${r.pRatio}% / ${st.name.replace("型","")} ${r.sRatio}%`;
+        catchcopyEl.style.display = "none";
+
+        subBlockEl.style.display = "block";
+        subBlockEl.innerHTML = `
+          <span class="sub-eyebrow">副傾向</span>
+          <div class="sub-display"><span class="sub-emoji">${st.emoji}</span>${st.name}</div>`;
       } else {
-        document.getElementById("r-emoji").textContent = r.isHybrid ? `${pt.emoji}  ×  ${st.emoji}` : pt.emoji;
-        document.getElementById("r-type-name").textContent = r.isHybrid ? `${pt.name} × ${st.name}` : pt.name;
-        document.getElementById("r-type-label").textContent = r.isHybrid ? `${pt.label} × ${st.label}` : pt.label;
-
-        if (r.isHybrid) {
-          document.getElementById("r-ratio").textContent = `${pt.name.replace("型","")} ${r.pRatio}% / ${st.name.replace("型","")} ${r.sRatio}%`;
-        } else {
-          document.getElementById("r-ratio").textContent = `バイアス傾向度: ${getPercentage(r.scores[r.pk])}%`;
-        }
-
-        document.getElementById("r-catchcopy").textContent = r.isHybrid ? `${pt.catchcopy} ／ ${st.catchcopy}` : pt.catchcopy;
+        // 単一タイプ：従来表示
+        emojiEl.textContent = pt.emoji;
+        nameEl.textContent = pt.name;
+        eyebrowEl.style.display = "none";
+        labelEl.style.display = "";
+        labelEl.textContent = pt.label;
+        ratioEl.style.display = "";
+        ratioEl.textContent = `バイアス傾向度: ${getPercentage(r.scores[r.pk])}%`;
+        catchcopyEl.style.display = "";
+        catchcopyEl.textContent = pt.catchcopy;
+        subBlockEl.style.display = "none";
+        subBlockEl.innerHTML = "";
       }
 
       // --- 準備できたイラスト画像を表示 ---
@@ -1324,46 +1580,76 @@
       imgContainer.innerHTML = "";
       imgContainer.className = "illustration-container";
       
-      const addImg = (key) => {
+      const appendImg = (src, alt, ariaLabel) => {
         const img = document.createElement("img");
-        img.src = `images/${key}.png`;
-        img.alt = typeDetails[key].name;
+        img.src = src;
+        img.alt = alt;
         img.className = "illustration-img";
+        img.loading = "lazy";
+        img.decoding = "async";
         img.style.cursor = "zoom-in";
+        img.tabIndex = 0;
+        img.setAttribute("role", "button");
+        img.setAttribute("aria-label", ariaLabel);
         img.addEventListener("click", () => openLightbox(img.src, img.alt));
+        img.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openLightbox(img.src, img.alt);
+          }
+        });
         imgContainer.appendChild(img);
       };
 
-      addImg(r.pk);
-
-      // 副傾向テキストの表示（複合・ハイブリッドのみ）
       if (r.isComposite) {
-        const subNote = document.createElement("p");
-        subNote.className = "illustration-subnote";
-        subNote.style.fontSize = "0.82rem";
-        subNote.style.color = "var(--text-sub)";
-        subNote.style.marginTop = "0.5rem";
-        subNote.style.textAlign = "center";
-        subNote.innerHTML = `※副傾向として「${st.name}」「${tt.name}」の特徴も場面によって現れやすい傾向があります。`;
-        imgContainer.appendChild(subNote);
-      } else if (r.isHybrid) {
-        const subNote = document.createElement("p");
-        subNote.className = "illustration-subnote";
-        subNote.style.fontSize = "0.82rem";
-        subNote.style.color = "var(--text-sub)";
-        subNote.style.marginTop = "0.5rem";
-        subNote.style.textAlign = "center";
-        subNote.innerHTML = `※副傾向として「${st.name}」の特徴も場面によって現れやすい傾向があります。`;
-        imgContainer.appendChild(subNote);
+        // 複合傾向型：全6タイプを束ねた専用イラスト
+        appendImg(
+          "images/composite.png",
+          "複合傾向型：6タイプの強みを併せ持つ薬剤師を描いた補助教材イラスト",
+          "複合傾向型の補助教材を拡大表示"
+        );
+      } else {
+        const t = typeDetails[r.pk];
+        appendImg(
+          `images/${r.pk}.png`,
+          `${t.name}（${t.label}）のNG行動とOK行動を左右で対比した補助教材イラスト`,
+          `${t.name}の補助教材を拡大表示`
+        );
       }
 
-      // S3: Reason
+      // S3: Reason（主タイプ + 副タイプの部品合成で文章を生成）
       const reasonEl = document.getElementById("r-reason");
+      reasonEl.innerHTML = "";
+      reasonEl.classList.remove("composed");
+
       if (r.isComposite) {
-        reasonEl.textContent = "あなたは特定の1タイプというより、複数のクセが場面によって出やすいタイプです。状況や忙しさに応じて、異なるバイアスによるズレが発生しやすいため、全体的なセルフチェックが必要です。";
+        // 複合：特定タイプに偏らず、上位3傾向を併せ持つ
+        reasonEl.classList.add("composed");
+        const riskItems = [pt, st, tt]
+          .map(t => `<li>${t.riskComment}</li>`)
+          .join("");
+        reasonEl.innerHTML = `
+          <p>あなたは特定の1タイプに偏らず、複数の強みを場面ごとに使い分けるタイプです。</p>
+          <p>特に「${pt.name}」「${st.name}」「${tt.name}」の3つが場面によって出やすい状態です。</p>
+          <p>忙しい場面では、</p>
+          <ul>${riskItems}</ul>
+          <p>という形で現れやすくなります。</p>
+          <p class="closer">まずは、${pt.okAction} から試してください。</p>`;
       } else if (r.isHybrid) {
-        reasonEl.textContent = `${pt.name}のズレ【${pt.bias}】と、${st.name}のズレ【${st.bias}】が状況に応じて複合的に出現しやすい傾向があります。`;
+        // ハイブリッド：主 + 副1つ
+        reasonEl.classList.add("composed");
+        reasonEl.innerHTML = `
+          <p>${pt.mainComment}</p>
+          <p>一方で、副傾向として「${st.name}」も出ています。<br>${st.subComment}</p>
+          <p>忙しい場面では、</p>
+          <ul>
+            <li>${pt.riskComment}</li>
+            <li>${st.riskComment}</li>
+          </ul>
+          <p>という形で現れやすくなります。</p>
+          <p class="closer">まずは、${pt.okAction} から試してください。</p>`;
       } else {
+        // 単一：従来の bias 文（後方互換のため textContent で）
         reasonEl.textContent = pt.bias + "傾向があります。";
       }
 
@@ -1372,24 +1658,18 @@
       // S4b: Radar
       renderRadar(r.scores, r.pk, r.sk, r.isHybrid);
 
-      // S5: OK Action + Serifu
-      if (r.isComposite) {
-        document.getElementById("r-ok-action").innerHTML = `① ${pt.okAction}<br>② ${st.okAction}<br>③ ${tt.okAction}`;
-      } else if (r.isHybrid) {
-        document.getElementById("r-ok-action").innerHTML = `① ${pt.okAction}<br>② ${st.okAction}`;
-      } else {
-        document.getElementById("r-ok-action").textContent = pt.okAction;
-      }
+      // S5: OK Action + Serifu（複合型でも行動は1つに絞り、認知負荷を下げる）
+      document.getElementById("r-ok-action").textContent = pt.okAction;
       document.getElementById("r-serifu").textContent = pt.serifu;
 
-      // S6: Sub tendency (single only)
+      // S6: Sub tendency (single only) — subComment 部品で生成
       const subEl = document.getElementById("r-sub-section");
       if (r.isHybrid || r.isComposite) {
         subEl.style.display = "none";
       } else {
         subEl.style.display = "block";
         document.getElementById("r-sub-text").textContent =
-          `2番目に高いスコアは「${st.name}」でした。${st.bias}といった側面も部分的に出やすい傾向があります。`;
+          `2番目に高いスコアは「${st.name}」でした。${st.subComment}`;
       }
 
       // S7: Awareness
@@ -1503,23 +1783,19 @@
       activeCheckKey = `biasdiag_checklist_${suffix}`;
       activeMemoKey = `biasdiag_memo_${suffix}`;
 
-      const saved = localStorage.getItem(activeCheckKey);
+      const saved = safeStorage.getItem(activeCheckKey);
       if (saved) {
-        dynamicChecklist = JSON.parse(saved);
-      } else {
+        try { dynamicChecklist = JSON.parse(saved); }
+        catch (e) { dynamicChecklist = []; }
+      }
+      if (!saved || !dynamicChecklist.length) {
+        // 複合型でもまずは主タイプの行動1つだけシード。副傾向の行動は手動で追加できる。
         dynamicChecklist = [{ text: typeDetails[pk].okAction, checked: false }];
-        if (compositeKeys) {
-          compositeKeys.forEach(k => {
-            dynamicChecklist.push({ text: typeDetails[k].okAction, checked: false });
-          });
-        } else if (sk) {
-          dynamicChecklist.push({ text: typeDetails[sk].okAction, checked: false });
-        }
         saveChecklist();
       }
       renderChecklist();
 
-      const memo = localStorage.getItem(activeMemoKey) || "";
+      const memo = safeStorage.getItem(activeMemoKey) || "";
       document.getElementById("memo-area").value = memo;
       document.getElementById("print-memo").textContent = memo;
     }
@@ -1544,7 +1820,7 @@
 
     function saveChecklist() {
       if (activeCheckKey) {
-        localStorage.setItem(activeCheckKey, JSON.stringify(dynamicChecklist));
+        safeStorage.setItem(activeCheckKey, JSON.stringify(dynamicChecklist));
       }
     }
 
@@ -1561,7 +1837,7 @@
 
     document.getElementById("memo-area").addEventListener("input", e => {
       if (activeMemoKey) {
-        localStorage.setItem(activeMemoKey, e.target.value);
+        safeStorage.setItem(activeMemoKey, e.target.value);
       }
       document.getElementById("print-memo").textContent = e.target.value;
     });
@@ -1593,12 +1869,15 @@
       canvas.width = 640; canvas.height = 960;
       const ctx = canvas.getContext("2d");
 
+      // 複合傾向型は中立色（プライマリ）、それ以外は主タイプ色をアクセントに
+      const accentColor = r.isComposite ? "#2F6F6D" : pt.color;
+
       // Background
       ctx.fillStyle = "#F7F8F6";
       ctx.fillRect(0, 0, 640, 960);
 
       // Top accent bar
-      ctx.fillStyle = pt.color;
+      ctx.fillStyle = accentColor;
       ctx.fillRect(0, 0, 640, 6);
 
       // Header area
@@ -1614,35 +1893,35 @@
       ctx.font = "bold 22px 'Noto Serif JP', serif";
       ctx.fillText("あなたが繰り返すミスのクセ診断", 320, 55);
 
-      // Type name
-      ctx.font = "bold 34px 'Noto Serif JP', serif";
-      ctx.fillStyle = pt.color;
-      let titleText = "";
+      // Type name（複合・ハイブリッドは主タイプを中心に表示し、副傾向は小さく添える）
+      ctx.font = "bold 32px 'Noto Serif JP', serif";
+      ctx.fillStyle = accentColor;
+      const titleText = r.isComposite ? "⚖️ 複合傾向型" : `${pt.emoji} ${pt.name}`;
+      ctx.fillText(titleText, 320, 110);
+
+      // Sub-tendency line (hybrid/composite only)
+      ctx.font = "600 14px 'Source Sans 3', sans-serif";
+      ctx.fillStyle = "#4B5563";
       if (r.isComposite) {
-        titleText = "⚖️ 複合傾向型";
-      } else {
-        titleText = r.isHybrid ? `${pt.emoji}${pt.name} × ${st.emoji}${st.name}` : `${pt.emoji} ${pt.name}`;
+        ctx.fillText(`特に出やすい: ${pt.emoji} ${pt.name} / ${st.emoji} ${st.name} / ${tt.emoji} ${tt.name}`, 320, 140);
+      } else if (r.isHybrid) {
+        ctx.fillText(`副傾向: ${st.emoji} ${st.name}`, 320, 140);
       }
-      ctx.fillText(titleText, 320, 115);
 
       // Ratio
-      ctx.font = "600 16px 'Source Sans 3', sans-serif";
-      ctx.fillStyle = "#4B5563";
-      let ratioText = "";
-      if (r.isComposite) {
-        ratioText = `最も注意: ${pt.name.replace("型","")} / 次点: ${st.name.replace("型","")}, ${tt.name.replace("型","")}`;
-      } else {
-        ratioText = r.isHybrid
-          ? `${pt.name.replace("型","")} ${r.pRatio}% / ${st.name.replace("型","")} ${r.sRatio}%`
-          : `バイアス傾向度: ${getPercentage(r.scores[r.pk])}%`;
-      }
-      ctx.fillText(ratioText, 320, 155);
+      ctx.font = "600 14px 'Source Sans 3', sans-serif";
+      ctx.fillStyle = "#6B7280";
+      const ratioText = r.isHybrid
+        ? `${pt.name.replace("型","")} ${r.pRatio}% / ${st.name.replace("型","")} ${r.sRatio}%`
+        : r.isComposite ? "" : `バイアス傾向度: ${getPercentage(r.scores[r.pk])}%`;
+      if (ratioText) ctx.fillText(ratioText, 320, 165);
 
-      // Catchcopy
-      ctx.font = "italic 14px 'Noto Serif JP', serif";
-      ctx.fillStyle = "#4B5563";
-      const copyText = r.isComposite ? "「特定の傾向にとどまらず、状況に応じて様々なクセが出やすい状態です」" : pt.catchcopy;
-      ctx.fillText(copyText, 320, 185);
+      // Catchcopy（単一タイプのみ。複合・ハイブリッドでは省略して情報量を抑える）
+      if (!r.isComposite && !r.isHybrid) {
+        ctx.font = "italic 14px 'Noto Serif JP', serif";
+        ctx.fillStyle = "#4B5563";
+        ctx.fillText(pt.catchcopy, 320, 190);
+      }
 
       // Misses block
       ctx.fillStyle = "#FEF2F2";
@@ -1682,15 +1961,8 @@
 
       ctx.fillStyle = "#1F2937";
       ctx.font = "bold 16px 'Noto Serif JP', serif";
-      if (r.isComposite) {
-        ctx.fillText("1. " + pt.okAction, 52, 485);
-        ctx.fillText("2. " + st.okAction, 52, 510);
-      } else if (r.isHybrid) {
-        ctx.fillText("1. " + pt.okAction, 52, 485);
-        ctx.fillText("2. " + st.okAction, 52, 510);
-      } else {
-        ctx.fillText(pt.okAction, 52, 490);
-      }
+      // 複合型でも行動は1つに絞る（画面表示と一貫）
+      ctx.fillText(pt.okAction, 52, 490);
 
       // Footer
       ctx.fillStyle = "#9CA3AF";
@@ -1699,12 +1971,12 @@
       ctx.fillText("薬剤師のミスのクセ診断 — @EarthKey", 320, 920);
 
       // Accent bottom bar
-      ctx.fillStyle = pt.color;
+      ctx.fillStyle = accentColor;
       ctx.fillRect(0, 954, 640, 6);
 
       // Download
       const link = document.createElement("a");
-      link.download = `ミスのクセ診断_${pt.name}.png`;
+      link.download = `ミスのクセ診断_${r.isComposite ? "複合傾向型" : pt.name}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     });
@@ -1715,21 +1987,30 @@
       const pt = typeDetails[r.pk], st = typeDetails[r.sk];
       let text = "";
       if (r.isComposite) {
-        text = `【ミスのクセ診断】私のバイアスタイプは「複合傾向型」でした！\n状況に合わせて「${pt.okAction}」などの対策を意識します。`;
+        text = `【ミスのクセ診断】私のタイプは「複合傾向型」でした。\nまずは「${pt.okAction}」から試します。`;
       } else if (r.isHybrid) {
-        text = `【ミスのクセ診断】私のバイアスタイプは「${pt.name} × ${st.name}」でした！\n明日から「${pt.okAction}」を徹底して対策します。`;
+        text = `【ミスのクセ診断】私の主タイプは「${pt.name}」、副傾向は「${st.name}」でした。\nまずは「${pt.okAction}」から試します。`;
       } else {
-        text = `【ミスのクセ診断】私のバイアスタイプは「${pt.name}」でした！\n明日から「${pt.okAction}」を徹底します。`;
+        text = `【ミスのクセ診断】私のバイアスタイプは「${pt.name}」でした。\n明日から「${pt.okAction}」を徹底します。`;
       }
-      const hashtags = "薬剤師のミスのクセ診断,EarthKey";
       const url = window.location.href;
-      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent(hashtags)}`, "_blank");
+      window.open(
+        `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+        "_blank",
+        "noopener,noreferrer"
+      );
     });
 
     // Restart
     document.getElementById("btn-restart").addEventListener("click", () => {
-      if (activeCheckKey) localStorage.removeItem(activeCheckKey);
-      if (activeMemoKey) localStorage.removeItem(activeMemoKey);
+      const hasSavedMemo = !!(activeMemoKey && safeStorage.getItem(activeMemoKey));
+      const hasSavedCheck = !!(activeCheckKey && safeStorage.getItem(activeCheckKey));
+      if (hasSavedMemo || hasSavedCheck) {
+        const ok = window.confirm("保存中の振り返りメモとチェックリストが削除されます。続行しますか？");
+        if (!ok) return;
+      }
+      if (activeCheckKey) safeStorage.removeItem(activeCheckKey);
+      if (activeMemoKey) safeStorage.removeItem(activeMemoKey);
       showScreen($intro);
     });
 
@@ -1749,33 +2030,56 @@
     }
 
     // Lightbox Control
+    let lightboxLastFocus = null;
     function openLightbox(src, alt) {
       const lightbox = document.getElementById("lightbox");
       const lightboxImg = document.getElementById("lightbox-img");
       const lightboxCap = document.getElementById("lightbox-caption");
-      
+
+      lightboxLastFocus = document.activeElement;
       lightboxImg.src = src;
       lightboxImg.alt = alt;
       lightboxCap.textContent = alt;
-      
+
       lightbox.classList.add("active");
+      lightbox.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
+      // 閉じるボタンへフォーカス（フォーカストラップの起点）
+      setTimeout(() => {
+        const closeBtn = lightbox.querySelector(".lightbox-close");
+        if (closeBtn) closeBtn.focus();
+      }, 50);
     }
 
     function closeLightbox() {
       const lightbox = document.getElementById("lightbox");
       lightbox.classList.remove("active");
+      lightbox.setAttribute("aria-hidden", "true");
       document.body.style.overflow = "";
+      // 呼び出し元へフォーカスを戻す
+      if (lightboxLastFocus && typeof lightboxLastFocus.focus === "function") {
+        lightboxLastFocus.focus();
+      }
     }
 
     document.addEventListener("keydown", e => {
-      if (e.key === "Escape") closeLightbox();
+      const lightbox = document.getElementById("lightbox");
+      if (!lightbox.classList.contains("active")) return;
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeLightbox();
+      } else if (e.key === "Tab") {
+        // 簡易フォーカストラップ：開いている間は閉じるボタンに留める
+        e.preventDefault();
+        const closeBtn = lightbox.querySelector(".lightbox-close");
+        if (closeBtn) closeBtn.focus();
+      }
     });
   </script>
 
   <!-- Lightbox Modal for Image Expansion -->
-  <div id="lightbox" class="lightbox" onclick="closeLightbox()">
-    <span class="lightbox-close">&times;</span>
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="拡大画像" aria-hidden="true" onclick="closeLightbox()">
+    <button type="button" class="lightbox-close" aria-label="拡大画像を閉じる" onclick="event.stopPropagation(); closeLightbox();">&times;</button>
     <img id="lightbox-img" class="lightbox-content" src="" alt="">
     <div id="lightbox-caption" class="lightbox-caption"></div>
   </div>

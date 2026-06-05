@@ -1,0 +1,12 @@
+# 監査・作業メモ（外部公開しない）
+監査報告書_*.md
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# Vercel
+.vercel
