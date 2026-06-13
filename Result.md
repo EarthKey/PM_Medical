@@ -21,9 +21,10 @@
 1. **スコア順ソート**:
    タイプ別スコアの高い順にソートし、最も高いスコアを $S_1$（主タイプ）、2番目に高いスコアを $S_2$（副タイプ）とする。
 2. **複合型（ハイブリッド型）判定**:
-   $S_1$ と $S_2$ の差が **1点以内**（$S_1 - S_2 \le 1$）の場合、**「複合型」**と判定する。
+   最高得点が **2タイプで同点**の場合、2タイプの**「複合型」**と判定する。
    - 表示例：`ペースセッター型 × 強制型`
-   - スコア差が2点以上の場合は、単一の `主タイプ` を結果タイプとする。
+   最高得点が **3タイプ以上で同点**の場合、**「複合傾向型」**と判定する。
+   - 最高得点が単独の場合は、単一の `主タイプ` を結果タイプとする。
 3. **比率（％）表示の計算**:
    薬剤師の多面的な傾向を伝えるため、主タイプと副タイプのスコア比率を表示する。
    比率の算出には、負のスコアを排除するために各タイプスコア（-6〜+6）に `+6` を加算して正の値（0〜12）に変換した値（$S'_1, S'_2$）を用いる。
@@ -192,24 +193,30 @@ function analyzeResult(answers) {
   
   // 補正Q19の適用
   const isQ19Active = answers[18] >= 1;
-  let maxScoreType = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
-  if (isQ19Active) {
-    scores[maxScoreType] += 1;
+  let sortedTypes = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
+  let maxScore = scores[sortedTypes[0]];
+  let topScoreCount = sortedTypes.filter(type => scores[type] === maxScore).length;
+  if (isQ19Active && topScoreCount === 1) {
+    scores[sortedTypes[0]] += 1;
   }
   
   // 補正Q20の適用（自覚度フラグ）
   const isAwarenessLow = answers[19] >= 1;
   
   // スコア順にソート
-  const sortedTypes = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
+  sortedTypes = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
   const primaryType = sortedTypes[0];
   const secondaryType = sortedTypes[1];
+  const tertiaryType = sortedTypes[2];
   
   const primaryScore = scores[primaryType];
   const secondaryScore = scores[secondaryType];
+  maxScore = primaryScore;
+  topScoreCount = sortedTypes.filter(type => scores[type] === maxScore).length;
   
-  // 複合型判定：スコア差が 1 以内
-  const isHybrid = (primaryScore - secondaryScore) <= 1;
+  // 複合型判定：最高得点が複数タイプで同点
+  const isHybrid = topScoreCount === 2;
+  const isComposite = topScoreCount >= 3;
   
   // 比率計算（スコアに+6して正の値に変換）
   const pScoreNorm = primaryScore + 6;
@@ -226,7 +233,9 @@ function analyzeResult(answers) {
   return {
     primaryType,
     secondaryType,
+    tertiaryType,
     isHybrid,
+    isComposite,
     primaryRatio,
     secondaryRatio,
     scores,

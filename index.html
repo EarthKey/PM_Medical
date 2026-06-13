@@ -1523,25 +1523,25 @@
       // Q20 awareness flag
       const isAwarenessLow = (answers[19] || 0) >= 1;
 
-      // 暫定ソートして上位3タイプの実力差を確認
+      // 暫定ソートして最高得点の同点数を確認
       let sorted = TYPE_KEYS.slice().sort((a, b) => scores[b] - scores[a]);
       let pk = sorted[0], sk = sorted[1], tk = sorted[2];
       let ps = scores[pk], ss = scores[sk], ts = scores[tk];
+      let topScoreCount = TYPE_KEYS.filter(key => scores[key] === ps).length;
 
-      // 複合傾向型判定：1位と3位のスコア差が1以内なら複合傾向型
-      const isComposite = (ps - ts) <= 1;
-
-      // 2. Q19補正：複合傾向ではない場合のみ、最高タイプに+1する
-      if (!isComposite && (answers[18] || 0) >= 1) {
+      // 2. Q19補正：最高得点が単独首位の場合のみ、そのタイプに+1する
+      if (topScoreCount === 1 && (answers[18] || 0) >= 1) {
         scores[pk] += 1;
         // 補正後に再ソートして再取得
         sorted = TYPE_KEYS.slice().sort((a, b) => scores[b] - scores[a]);
         pk = sorted[0]; sk = sorted[1]; tk = sorted[2];
         ps = scores[pk]; ss = scores[sk]; ts = scores[tk];
+        topScoreCount = TYPE_KEYS.filter(key => scores[key] === ps).length;
       }
 
-      // Hybrid判定：1位と2位の差が1以内
-      const isHybrid = (ps - ss) <= 1;
+      // 最高得点が同点のタイプだけを複合判定の対象にする
+      const isComposite = topScoreCount >= 3;
+      const isHybrid = topScoreCount === 2;
 
       // Ratio (1位と2位の比率)
       const pn = ps + 6, sn = ss + 6, total = pn + sn;
