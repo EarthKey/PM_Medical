@@ -1405,8 +1405,34 @@
 
     const TYPE_KEYS = ["pacesetter", "coach", "authoritative", "affiliative", "visionary", "democratic"];
 
+    // タイプを「押し進める系（push）」と「持ちこたえる系（hold）」の2軸に分類。
+    // 例: ペースセッター型のNG行動（確認を待たずに進める）は、強制型・先見型のNG行動（結論/理想を急ぐ）と方向性が近く、
+    // コーチ型・関係重視型・民主型のNG行動（介入や判断を控える）とは逆方向に働く。
+    const TYPE_GROUPS = {
+      pacesetter: "push", authoritative: "push", visionary: "push",
+      coach: "hold", affiliative: "hold", democratic: "hold"
+    };
+    const CROSS_WEIGHT_SAME_GROUP = 0.1;  // 同じ軸の他タイプへの弱い加点
+    const CROSS_WEIGHT_OPP_GROUP = -0.05; // 逆の軸の他タイプへの弱い減点
+
+    function getQuestionWeight(questionType, targetType) {
+      if (questionType === targetType) return 1;
+      return TYPE_GROUPS[questionType] === TYPE_GROUPS[targetType]
+        ? CROSS_WEIGHT_SAME_GROUP
+        : CROSS_WEIGHT_OPP_GROUP;
+    }
+
+    // 理論上の最大スコア（=最小スコアの絶対値）を重み行列から算出。パーセンテージ表示の正規化に使う。
+    const THEORETICAL_MAX = TYPE_KEYS.reduce((max, type) => {
+      const sum = questions.reduce((acc, q) => {
+        if (q.type.startsWith("correction")) return acc;
+        return acc + Math.abs(getQuestionWeight(q.type, type));
+      }, 0);
+      return Math.max(max, sum * 2);
+    }, 0);
+
     function getPercentage(score) {
-      return Math.min(100, Math.max(0, Math.round(((score + 6) / 12) * 100)));
+      return Math.min(100, Math.max(0, Math.round(((score + THEORETICAL_MAX) / (THEORETICAL_MAX * 2)) * 100)));
     }
 
     // ================================================================
@@ -1510,15 +1536,19 @@
     // 6. SCORING & ANALYSIS
     // ================================================================
     function analyze() {
-      // 1. Q1〜Q18の基本集計（Q19、Q20を除外）
-      const scores = {
-        pacesetter:    (answers[0] || 0) + (answers[1] || 0) + (answers[2] || 0),
-        coach:         (answers[3] || 0) + (answers[4] || 0) + (answers[5] || 0),
-        authoritative: (answers[6] || 0) + (answers[7] || 0) + (answers[8] || 0),
-        affiliative:   (answers[9] || 0) + (answers[10] || 0) + (answers[11] || 0),
-        visionary:     (answers[12] || 0) + (answers[13] || 0) + (answers[14] || 0),
-        democratic:    (answers[15] || 0) + (answers[16] || 0) + (answers[17] || 0)
-      };
+      // 1. Q1〜Q18の重み付け集計（Q19、Q20は補正用に除外）
+      // 各質問は「本来のタイプ」に満点(重み1)で効くだけでなく、同じ軸のタイプに弱く加点、逆の軸のタイプに弱く減点する。
+      // これにより同点（複合型/複合傾向型）の発生を抑え、単一タイプへの収束を高める。
+      const scores = {};
+      TYPE_KEYS.forEach(type => { scores[type] = 0; });
+      questions.forEach((q, idx) => {
+        if (q.type.startsWith("correction")) return;
+        const ai = answers[idx] || 0;
+        TYPE_KEYS.forEach(type => {
+          scores[type] += ai * getQuestionWeight(q.type, type);
+        });
+      });
+      TYPE_KEYS.forEach(type => { scores[type] = Math.round(scores[type] * 100) / 100; });
 
       // Q20 awareness flag
       const isAwarenessLow = (answers[19] || 0) >= 1;
@@ -1544,7 +1574,7 @@
       const isHybrid = topScoreCount === 2;
 
       // Ratio (1位と2位の比率)
-      const pn = ps + 6, sn = ss + 6, total = pn + sn;
+      const pn = ps + THEORETICAL_MAX, sn = ss + THEORETICAL_MAX, total = pn + sn;
       let pRatio = 50, sRatio = 50;
       if (total > 0) { pRatio = Math.round((pn / total) * 100); sRatio = 100 - pRatio; }
 
